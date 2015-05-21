@@ -28,6 +28,16 @@ Connecting Mac Mini RabbitMQ server
       `ruby rental_offer_need.rb <Mac_Mini_IP> bugs`
       This should send a message that shows up on the monitor console
 
+Cleaning up after class:
+
+  The class will create lots of queues and exchanges,
+  most of which may be lingering after class. Clean
+  these up by:
+
+  1.  In the terminal window while RabbitMQ is running 
+      for each vhost XXXX:
+    `rabbitmqadmin -f tsv -q --vhost=XXXX list queues name | while read queue; do rabbitmqadmin -q  delete queue --vhost=XXXX name=${queue}; done`
+
 Connecting and configuring Airport Express
 
 1. Name is Fred Airport Express
