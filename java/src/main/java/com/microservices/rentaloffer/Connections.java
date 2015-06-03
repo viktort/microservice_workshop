@@ -129,7 +129,7 @@ public class Connections implements AutoCloseable {
 
     protected String queue(Channel channel) {
         try {
-            channel.queueDeclare(queue, true, false, false, new HashMap<String, Object>());
+            channel.queueDeclare(queue, false, true, false, new HashMap<String, Object>());
             return queue;
         } catch (IOException e) {
             throw new RuntimeException("Could not declare queue:", e);
