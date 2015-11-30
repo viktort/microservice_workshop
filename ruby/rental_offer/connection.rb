@@ -2,13 +2,12 @@ require 'bunny'
 
 class Connection
 
-  def self.with_open(host, port, vhost_name, &block)
+  def self.with_open(host, port, &block)
     begin
       puts "Opening connection to RabbitMQ host..."
       conn = Bunny.new(
-                       user: vhost_name,
-                       password: vhost_name,
-                       vhost: vhost_name,
+                       user: 'guest',
+                       password: 'guest',
                        host: host,
                        port: port,
                        automatically_recover: false)

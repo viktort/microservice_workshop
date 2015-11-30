@@ -11,14 +11,13 @@ require_relative 'connection'
 # Streams rental-offer-related requests to the console
 class RentalOfferMonitor
 
-  def initialize(host, port, bus_name)
+  def initialize(host, port)
     @host = host
     @port = port
-    @bus_name = bus_name
   end
 
   def start
-    Connection.with_open(@host, @port, @bus_name) {|ch, ex| monitor_solutions(ch, ex) }
+    Connection.with_open(@host, @port) {|ch, ex| monitor_solutions(ch, ex) }
   end
 
 private
@@ -26,7 +25,7 @@ private
   def monitor_solutions(channel, exchange)
     queue = channel.queue("", :exclusive => true)
     queue.bind exchange
-    puts " [*] Waiting for solutions on the '#{@bus_name}' bus... To exit press CTRL+C"
+    puts " [*] Waiting for solutions on the bus... To exit press CTRL+C"
     queue.subscribe(block: true) do |delivery_info, properties, body|
       puts " [x] Received #{body}"
     end
@@ -34,4 +33,4 @@ private
 
 end
 
-RentalOfferMonitor.new(ARGV.shift, ARGV.shift, ARGV.shift).start
+RentalOfferMonitor.new(ARGV.shift, ARGV.shift).start

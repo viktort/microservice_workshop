@@ -9,9 +9,9 @@ public class Monitor implements MessageHandler {
 
     public static void main(String[] args) {
         String host = args[0];
-        String busName = args[1];
+        String port = args[1];
 
-        Connections connection = new Connections(host, busName);
+        Connections connection = new Connections(host, port);
         connection.deliveryLoop(new Monitor());
     }
 

@@ -12,14 +12,13 @@ require_relative 'connection'
 # Expresses a need for rental car offers
 class RentalOfferNeed
 
-  def initialize(host, port, vhost_name)
+  def initialize(host, port)
     @host = host
     @port = port
-    @vhost_name = vhost_name
   end
 
   def start
-    Connection.with_open(@host, @port, @vhost_name) {|ch, ex| publish_need(ch, ex)}
+    Connection.with_open(@host, @port) {|ch, ex| publish_need(ch, ex)}
   end
 
   private
@@ -27,11 +26,11 @@ class RentalOfferNeed
   def publish_need(channel, exchange)
     loop do
       exchange.publish RentalOfferNeedPacket.new.to_json
-      puts " [x] Published a rental offer need on the #{@vhost_name} bus"
+      puts " [x] Published a rental offer need on the bus"
       sleep 5
     end
   end
 
 end
 
-RentalOfferNeed.new(ARGV.shift, ARGV.shift, ARGV.shift).start
+RentalOfferNeed.new(ARGV.shift, ARGV.shift).start

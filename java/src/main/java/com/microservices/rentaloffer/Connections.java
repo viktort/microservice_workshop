@@ -21,8 +21,8 @@ public class Connections implements AutoCloseable {
     protected final Connection connection;
     protected AMQP.BasicProperties basicProperties;
 
-    public Connections(String host, String vhostName) {
-        this.amqpUrl = amqpUrl(host, vhostName);
+    public Connections(String host, String port) {
+        this.amqpUrl = amqpUrl(host, port);
         ConnectionFactory factory = factory();
         this.connection = connection(factory);
         this.basicProperties = new AMQP.BasicProperties().builder().build();
@@ -71,8 +71,8 @@ public class Connections implements AutoCloseable {
         return properties.getHeaders();
     }
 
-    protected String amqpUrl(String host, String vhostName) {
-        return String.format("amqp://%s:%s@%s/%s", vhostName, vhostName, host, vhostName);
+    protected String amqpUrl(String host, String port) {
+        return String.format("amqp://student:student@%s:%s", host, port);
     }
 
     protected String message(QueueingConsumer.Delivery delivery) {
