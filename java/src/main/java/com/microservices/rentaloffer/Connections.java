@@ -72,7 +72,7 @@ public class Connections implements AutoCloseable {
     }
 
     protected String amqpUrl(String host, String port) {
-        return String.format("amqp://student:student@%s:%s", host, port);
+        return String.format("amqp://guest:guest@%s:%s", host, port);
     }
 
     protected String message(QueueingConsumer.Delivery delivery) {
