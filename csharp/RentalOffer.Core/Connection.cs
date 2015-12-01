@@ -3,22 +3,21 @@ using System.Text;
 using RabbitMQ.Client;
 using RabbitMQ.Client.MessagePatterns;
 
-namespace RentalOffer.Core {
+namespace RentalOffer.Core { 
 
     public class Connection {
 
         private ConnectionFactory factory;
         private IModel channel;
-        private string busName;
         private const string QUEUE = "";
 
-        public Connection(string host, string busName) {
-            this.busName = busName;
+        public Connection(string host, string port) {
             factory = new ConnectionFactory {
                     HostName = host,
-                    UserName = busName,
-                    Password = busName,
-                    VirtualHost = busName
+                    UserName = "guest",
+                    Password = "guest",
+                    VirtualHost = "/",
+                    Port = int.Parse(port)
                };
         }
 
@@ -36,7 +35,7 @@ namespace RentalOffer.Core {
 
         public void Publish(string message) {
             var body = Encoding.UTF8.GetBytes(message);
-            channel.BasicPublish("rapids", busName, null, body);
+            channel.BasicPublish("rapids", "/", null, body);
         }
 
         public Subscription Subscribe() {
