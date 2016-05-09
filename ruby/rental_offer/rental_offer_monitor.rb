@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
 
-# Docker run command:
-#   docker run --name='workshop_monitor' -it -v /c/Users/fred/src/microservice_workshop/ruby:/workshop -w /workshop/rental_offer fredgeorge/ruby_microservice:latest bash
+# Docker run command (for Mac):
+#   docker run --name='workshop_monitor' -it -v /Users/fred/src/microservice_workshop/ruby:/workshop -w /workshop/rental_offer fredgeorge/ruby_microservice:latest bash
 # To run monitor at prompt:
-#   ruby rental_car_monitor.rb 192.168.59.103 bugs
+#   ruby rental_car_monitor.rb <docker_ip_address> <rabbit_mq_port>
 
 require_relative 'connection'
 
