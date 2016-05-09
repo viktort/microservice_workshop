@@ -1,3 +1,5 @@
+// Look at using quick-json library from Google as alternative
+
 package com.microservices.rentaloffer;
 
 import java.util.List;
