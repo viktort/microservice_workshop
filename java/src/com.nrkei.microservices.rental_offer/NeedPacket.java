@@ -1,6 +1,10 @@
-// Look at using quick-json library from Google as alternative
+package com.nrkei.microservices.rental_offer;
 
-package com.microservices.rentaloffer;
+/*
+ * Copyright (c) 2016 by Fred George
+ * May be used freely except for training; license required for training.
+ * @author Fred George
+ */
 
 import java.util.List;
 import java.util.ArrayList;
