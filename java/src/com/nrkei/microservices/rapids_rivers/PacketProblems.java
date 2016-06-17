@@ -12,7 +12,7 @@ import java.util.List;
 public class PacketProblems {
 
     private final String originalJson;
-    private final List<String> informationMessages = new ArrayList<>();
+    private final List<String> informationalMessages = new ArrayList<>();
     private final List<String> warnings = new ArrayList<>();
     private final List<String> errors = new ArrayList<>();
     private final List<String> severeErrors = new ArrayList<>();
@@ -26,11 +26,11 @@ public class PacketProblems {
     }
 
     private boolean hasMessages() {
-        return !informationMessages.isEmpty() || !warnings.isEmpty() || hasErrors();
+        return !informationalMessages.isEmpty() || !warnings.isEmpty() || hasErrors();
     }
 
     public void information(String explanation) {
-        informationMessages.add(explanation);
+        informationalMessages.add(explanation);
 
     }
     public void warning(String explanation) {
@@ -54,7 +54,7 @@ public class PacketProblems {
         append("Severe errors", severeErrors, results);
         append("Errors", errors, results);
         append("Warnings", warnings, results);
-        append("Information", informationMessages, results);
+        append("Information", informationalMessages, results);
         results.append("\n");
         return results.toString();
     }
