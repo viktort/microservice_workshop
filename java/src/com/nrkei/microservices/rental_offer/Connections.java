@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.concurrent.TimeoutException;
 
 public class Connections implements AutoCloseable {
     protected static final Logger logger = LoggerFactory.getLogger(Connection.class);
@@ -163,6 +164,8 @@ public class Connections implements AutoCloseable {
             return factory.newConnection();
         } catch (IOException e) {
             throw new RuntimeException("Could not create channel:", e);
+        } catch (TimeoutException e) {
+            throw new RuntimeException("Time out in creating channel: ", e);
         }
     }
 
