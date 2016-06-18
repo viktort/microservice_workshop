@@ -39,26 +39,31 @@ public class PacketBuilderTest {
     private static final String SOLUTIONS_KEY = "solutions";
 
     private PacketBuilder builder;
+    private PacketProblems problems;
     private Collection solutions;
 
     @Before
     public void setUp() throws Exception {
-        builder = new PacketBuilder(SOLUTION_STRING);
+        problems = new PacketProblems(SOLUTION_STRING);
+        builder = new PacketBuilder(SOLUTION_STRING, problems);
     }
 
     @Test
     public void validJsonExtracted() throws Exception {
-        assertTrue(builder.isPacketValid());
+        assertFalse(problems.hasErrors());
     }
 
     @Test
     public void invalidJsonFormat() throws Exception {  // missing comma
-        assertFalse(new PacketBuilder(MISSING_COMMA).isPacketValid());
+        problems = new PacketProblems(MISSING_COMMA);
+        builder = new PacketBuilder(MISSING_COMMA, problems);
+        assertTrue(problems.hasErrors());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void packetInaccessibleIfInvalid() throws Exception {  // missing comma
-        new PacketBuilder(MISSING_COMMA).result();
+        problems = new PacketProblems(MISSING_COMMA);
+        new PacketBuilder(MISSING_COMMA, problems).result();
     }
 
     @Test
@@ -70,7 +75,7 @@ public class PacketBuilderTest {
     @Test
     public void missingRequiredKey() throws Exception {
         builder.require("missing_key");
-        assertFalse(builder.isPacketValid());
+        assertTrue(problems.hasErrors());
     }
 
     @Test
@@ -94,13 +99,13 @@ public class PacketBuilderTest {
     @Test
     public void emptyArrayPassesForbidden() throws Exception {
         builder.forbid(EMPTY_ARRAY_KEY);
-        assertTrue(builder.problems.toString(), builder.isPacketValid());
+        assertFalse(problems.toString(), problems.hasErrors());
     }
 
     @Test
     public void forbiddenFieldRejected() throws Exception {
         builder.forbid(NEED_KEY);
-        assertFalse(builder.problems.toString(), builder.isPacketValid());
+        assertTrue(problems.toString(), problems.hasErrors());
     }
 
     @Test
@@ -133,7 +138,7 @@ public class PacketBuilderTest {
                 .require(NEED_KEY)
                 .forbid(EMPTY_ARRAY_KEY, KEY_TO_BE_ADDED)
                 .interestedIn(INTERESTING_KEY);
-        assertTrue(builder.isPacketValid());
+        assertFalse(problems.hasErrors());
     }
 
     @Test
@@ -148,9 +153,9 @@ public class PacketBuilderTest {
     @Test
     public void requiredValue() throws Exception {
         builder.requireValue(NEED_KEY, "car_rental_offer");
-        assertTrue(builder.isPacketValid());
+        assertFalse(problems.hasErrors());
         builder.requireValue("user_id", 666);
-        assertFalse((builder.isPacketValid()));
+        assertTrue(problems.hasErrors());
     }
 
     @Test
@@ -162,7 +167,8 @@ public class PacketBuilderTest {
 
     @Test
     public void readCountAddedByDefault() throws Exception {
-        Packet nakedPacket = new PacketBuilder("{}").result();
+        problems = new PacketProblems("{}");
+        Packet nakedPacket = new PacketBuilder("{}", problems).result();
         assertEquals(0.0, json(nakedPacket.toJson()).get(Packet.READ_COUNT));
     }
 

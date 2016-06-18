@@ -15,11 +15,11 @@ class PacketBuilder {
     private final String candidateJsonString;
     private Map<String, Object> jsonHash = new HashMap<>();
     private Packet packet;
-    final PacketProblems problems;
+    private final PacketProblems problems;
 
-    public PacketBuilder(String jsonString) {
+    public PacketBuilder(String jsonString, PacketProblems problems) {
         candidateJsonString = jsonString;
-        problems = new PacketProblems(jsonString);
+        this.problems = problems;
         try {
             Gson jsonEngine = new Gson();
             jsonHash = jsonEngine.fromJson(jsonString, HashMap.class);
@@ -33,13 +33,9 @@ class PacketBuilder {
         }
     }
 
-    public boolean isPacketValid() {
-        return !problems.hasErrors();
-    }
-
     public Packet result() {
-        if (isPacketValid()) return packet;
-        throw new IllegalArgumentException(problems.toString());
+        if (problems.hasErrors()) throw new IllegalArgumentException(problems.toString());
+        return packet;
     }
 
     public PacketBuilder require(String... requiredJsonKeys) {

@@ -30,20 +30,21 @@ public class River implements Rapids.MessageListener {
 
     @Override
     public void message(Rapids sendPort, String message) {
-        PacketBuilder builder = new PacketBuilder(message);
+        PacketProblems problems = new PacketProblems(message);
+        PacketBuilder builder = new PacketBuilder(message, problems);
         for (Validation v : validations) v.validate(builder);
-        if (builder.isPacketValid())
-            packet(sendPort, builder);
+        if (problems.hasErrors())
+            onError(sendPort, problems);
         else
-            onError(sendPort, builder);
+            packet(sendPort, builder);
     }
 
     private void packet(Rapids sendPort, PacketBuilder builder) {
         for (PacketListener l : listeners) l.packet(sendPort, builder.result());
     }
 
-    private void onError(Rapids sendPort, PacketBuilder builder) {
-        for (PacketListener l : listeners) l.onError(sendPort, builder.problems);
+    private void onError(Rapids sendPort, PacketProblems problems) {
+        for (PacketListener l : listeners) l.onError(sendPort, problems);
     }
 
     public void require(String jsonKey) {
