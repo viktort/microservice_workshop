@@ -56,7 +56,7 @@ public class PacketBuilderTest {
         assertFalse(new PacketBuilder(MISSING_COMMA).isPacketValid());
     }
 
-    @Test(expected = DiscardedJsonPacketException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void packetInaccessibleIfInvalid() throws Exception {  // missing comma
         new PacketBuilder(MISSING_COMMA).result();
     }

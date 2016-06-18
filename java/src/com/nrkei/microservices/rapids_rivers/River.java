@@ -17,6 +17,7 @@ public class River implements Rapids.MessageListener {
 
     private final Rapids rapids;
     private final List<PacketListener> listeners = new ArrayList<>();
+    private final List<Validation> validations = new ArrayList<>();
 
     public River(Rapids rapids) {
         this.rapids = rapids;
@@ -29,14 +30,45 @@ public class River implements Rapids.MessageListener {
 
     @Override
     public void message(Rapids sendPort, String message) {
-        for (PacketListener l : listeners) {
+        PacketBuilder builder = new PacketBuilder(message);
+        for (Validation v : validations) v.validate(builder);
+        if (builder.isPacketValid())
+            packet(sendPort, builder);
+        else
+            onError(sendPort, builder);
+    }
 
-        }
+    private void packet(Rapids sendPort, PacketBuilder builder) {
+        for (PacketListener l : listeners) l.packet(sendPort, builder.result());
+    }
+
+    private void onError(Rapids sendPort, PacketBuilder builder) {
+        for (PacketListener l : listeners) l.onError(sendPort, builder.problems);
+    }
+
+    public void require(String jsonKey) {
+        validations.add(new RequireKey(jsonKey));
     }
 
     public interface PacketListener {
         void packet(Rapids rapids, Packet packet);
         void onError(Rapids rapids, PacketProblems problems);
+    }
+
+    private interface Validation {
+        void validate(PacketBuilder builder);
+    }
+
+    private class RequireKey implements Validation {
+        private final String[] requiredKeys;
+
+        RequireKey(String... requiredKeys) {
+            this.requiredKeys = requiredKeys;
+        }
+        @Override
+        public void validate(PacketBuilder builder) {
+            builder.require(requiredKeys);
+        }
     }
 
 }

@@ -9,10 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 // Understands an undistinguished stream of messages
-public class Rapids {
+public abstract class Rapids {
 
-    private final List<MessageListener> listeners = new ArrayList<>();
-
+    protected final List<MessageListener> listeners = new ArrayList<>();
 
     public void register(MessageListener listener) {
         listeners.add(listener);

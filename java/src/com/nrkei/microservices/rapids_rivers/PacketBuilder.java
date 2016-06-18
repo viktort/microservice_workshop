@@ -11,37 +11,41 @@ import com.google.gson.JsonSyntaxException;
 import java.util.*;
 
 // Understands the construction process for a JSON message packet
-public class PacketBuilder {
+class PacketBuilder {
     private final String candidateJsonString;
     private Map<String, Object> jsonHash = new HashMap<>();
     private Packet packet;
-    final List<String> problems = new ArrayList<>();
+    final PacketProblems problems;
 
-    public PacketBuilder(String jsonString) throws Exception {
+    public PacketBuilder(String jsonString) {
         candidateJsonString = jsonString;
+        problems = new PacketProblems(jsonString);
         try {
             Gson jsonEngine = new Gson();
             jsonHash = jsonEngine.fromJson(jsonString, HashMap.class);
             packet = new Packet(jsonHash);
         }
         catch(JsonSyntaxException e) {
-            problems.add("Invalid JSON format:\n\t\t" + jsonString);
+            problems.severeError("Invalid JSON format per Gson library");
+        }
+        catch(Exception e) {
+            problems.severeError("Unknown failure. Message is: " + e.toString());
         }
     }
 
     public boolean isPacketValid() {
-        return problems.isEmpty();
+        return !problems.hasErrors();
     }
 
     public Packet result() {
         if (isPacketValid()) return packet;
-        throw new DiscardedJsonPacketException(candidateJsonString, problems);
+        throw new IllegalArgumentException(problems.toString());
     }
 
     public PacketBuilder require(String... requiredJsonKeys) {
         for (String key : requiredJsonKeys) {
             if (hasKey(key)) { registerAccessor(key); continue; }
-            problems.add("Missing required key '" + key + "'");
+            problems.error("Missing required key '" + key + "'");
         }
         return this;
     }
@@ -52,7 +56,7 @@ public class PacketBuilder {
                 registerAccessor(key);
                 continue;
             }
-            problems.add("Forbidden key '" + key + "' already defined");
+            problems.error("Forbidden key '" + key + "' already defined");
         }
         return this;
     }
@@ -64,7 +68,7 @@ public class PacketBuilder {
 
     public PacketBuilder requireValue(String requiredKey, Object requiredValue) {
         if (isKeyMissing(requiredKey) || !jsonHash.get(requiredKey).equals(requiredValue)) {
-            problems.add("Required key '"
+            problems.error("Required key '"
                     + requiredKey
                     + "' does not have required value '"
                     + requiredValue

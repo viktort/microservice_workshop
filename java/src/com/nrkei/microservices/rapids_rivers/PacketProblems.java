@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 // Understands issue that arose when analyzing a JSON message
+// Implements Collecting Parameter in Refactoring by Martin Fowler
 public class PacketProblems {
 
     private final String originalJson;
