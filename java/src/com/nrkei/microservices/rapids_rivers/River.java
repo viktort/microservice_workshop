@@ -5,14 +5,12 @@ package com.nrkei.microservices.rapids_rivers;
  * @author Fred George
  */
 
-import com.google.gson.Gson;
-
 import java.util.ArrayList;
 import java.util.List;
 
 // Understands a stream of valid JSON packets meeting certain criteria
-// Implements GOF Observer pattern
-// Implements GOF Command pattern
+// Implements GOF Observer pattern to trigger listeners with packets and/or problems
+// Implements GOF Command pattern for validations
 public class River implements Rapids.MessageListener {
 
     private final Rapids rapids;
@@ -31,45 +29,81 @@ public class River implements Rapids.MessageListener {
     @Override
     public void message(Rapids sendPort, String message) {
         PacketProblems problems = new PacketProblems(message);
-        PacketBuilder builder = new PacketBuilder(message, problems);
-        for (Validation v : validations) v.validate(builder);
+        Packet packet = new Packet(message, problems);
+        for (Validation v : validations) v.validate(packet);
         if (problems.hasErrors())
             onError(sendPort, problems);
         else
-            packet(sendPort, builder);
+            packet(sendPort, packet, problems);
     }
 
-    private void packet(Rapids sendPort, PacketBuilder builder) {
-        for (PacketListener l : listeners) l.packet(sendPort, builder.result());
+    private void packet(Rapids sendPort, Packet packet, PacketProblems warnings) {
+        for (PacketListener l : listeners) l.packet(sendPort, packet, warnings);
     }
 
-    private void onError(Rapids sendPort, PacketProblems problems) {
-        for (PacketListener l : listeners) l.onError(sendPort, problems);
+    private void onError(Rapids sendPort, PacketProblems errors) {
+        for (PacketListener l : listeners) l.onError(sendPort, errors);
     }
 
-    public void require(String jsonKey) {
-        validations.add(new RequireKey(jsonKey));
+    public River require(String... jsonKeys) {
+        validations.add(new RequiredKeys(jsonKeys));
+        return this;
+    }
+
+    public River forbid(String... jsonKeys) {
+        validations.add(new ForbiddenKeys(jsonKeys));
+        return this;
+    }
+
+    public River interestedIn(String... jsonKeys) {
+        validations.add(new InterestingKeys(jsonKeys));
+        return this;
+    }
+
+    public River requireValue(String jsonKey, String expectedValue) {
+        validations.add(new RequiredValue(jsonKey, expectedValue));
+        return this;
     }
 
     public interface PacketListener {
-        void packet(Rapids rapids, Packet packet);
-        void onError(Rapids rapids, PacketProblems problems);
+        void packet(Rapids rapids, Packet packet, PacketProblems warnings);
+        void onError(Rapids rapids, PacketProblems errors);
     }
 
     private interface Validation {
-        void validate(PacketBuilder builder);
+        void validate(Packet packet);
     }
 
-    private class RequireKey implements Validation {
+    private class RequiredKeys implements Validation {
         private final String[] requiredKeys;
-
-        RequireKey(String... requiredKeys) {
+        RequiredKeys(String... requiredKeys) {
             this.requiredKeys = requiredKeys;
         }
-        @Override
-        public void validate(PacketBuilder builder) {
-            builder.require(requiredKeys);
+        @Override public void validate(Packet packet) {
+            packet.require(requiredKeys);
         }
+    }
+
+    private class ForbiddenKeys implements Validation {
+        private final String[] forbiddenKeys;
+        ForbiddenKeys(String... forbiddenKeys) { this.forbiddenKeys = forbiddenKeys;}
+        @Override public void validate(Packet packet) { packet.forbid(forbiddenKeys); }
+    }
+
+    private class InterestingKeys implements Validation {
+        private final String[] forbiddenKeys;
+        InterestingKeys(String... forbiddenKeys) { this.forbiddenKeys = forbiddenKeys;}
+        @Override public void validate(Packet packet) { packet.interestedIn(forbiddenKeys); }
+    }
+
+    private class RequiredValue implements Validation {
+        private final String requiredKey;
+        private final String requiredValue;
+        RequiredValue(String requiredKey, String requiredValue) {
+            this.requiredKey = requiredKey;
+            this.requiredValue = requiredValue;
+        }
+        @Override public void validate(Packet packet) { packet.requireValue(requiredKey, requiredValue); }
     }
 
 }
