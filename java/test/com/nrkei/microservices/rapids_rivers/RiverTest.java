@@ -256,6 +256,17 @@ public class RiverTest {
         rapids.process("{}");
     }
 
+    @Test(expected = PacketProblems.class)
+    public void problemsCanBeThrown() throws Exception {
+        river.register(new TestPacketListener () {
+            @Override
+            public void onError(Rapids rapids, PacketProblems errors) {
+                throw errors;
+            }
+        });
+        rapids.process(MISSING_COMMA);
+    }
+
     private void assertJsonEquals(String expected, String actual) {
         assertEquals(json(expected), json(actual));
     }

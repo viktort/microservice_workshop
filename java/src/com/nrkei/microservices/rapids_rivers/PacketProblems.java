@@ -10,7 +10,7 @@ import java.util.List;
 
 // Understands issue that arose when analyzing a JSON message
 // Implements Collecting Parameter in Refactoring by Martin Fowler
-public class PacketProblems {
+public class PacketProblems extends RuntimeException {
 
     private final String originalJson;
     private final List<String> informationalMessages = new ArrayList<>();
@@ -26,14 +26,10 @@ public class PacketProblems {
         return !(errors.isEmpty() && severeErrors.isEmpty());
     }
 
-    private boolean hasMessages() {
-        return !informationalMessages.isEmpty() || !warnings.isEmpty() || hasErrors();
-    }
+    private boolean hasMessages() { return hasErrors() || !informationalMessages.isEmpty() || !warnings.isEmpty(); }
 
-    public void information(String explanation) {
-        informationalMessages.add(explanation);
+    public void information(String explanation) { informationalMessages.add(explanation); }
 
-    }
     public void warning(String explanation) {
         warnings.add(explanation);
     }
@@ -45,6 +41,9 @@ public class PacketProblems {
     public void severeError(String explanation) {
         severeErrors.add(explanation);
     }
+
+    @Override
+    public String getMessage() { return toString(); }
 
     @Override
     public String toString() {
