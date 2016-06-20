@@ -1,33 +1,36 @@
-package com.nrkei.microservices.rental_offer;
+package com.nrkei.microservices.rapids_rivers.rabbit_mq;
 /*
  * Copyright (c) 2016 by Fred George
  * May be used freely except for training; license required for training.
  * @author Fred George
  */
 
+import com.nrkei.microservices.rapids_rivers.RapidsConnection;
 import com.rabbitmq.client.*;
+// TODO: Consider just using default Java console logging
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
-public class Connections implements AutoCloseable {
-    protected static final Logger logger = LoggerFactory.getLogger(Connection.class);
-    protected final Channel channel;
-    protected final QueueingConsumer consumer;
-    protected final String amqpUrl;
-    protected final String queue = "";
-    protected final String exchange = "rapids";
-    protected final String exchangeType = "fanout";
-    protected final String routingKey;
-    protected final Connection connection;
-    protected AMQP.BasicProperties basicProperties;
+// Understands an event bus implemented with RabbitMQ in pub/sub mode (fanout)
+public class RabbitMqRapids extends RapidsConnection implements AutoCloseable {
+    private static final Logger logger = LoggerFactory.getLogger(Connection.class);
+    private final Channel channel;
+    private final QueueingConsumer consumer;
+    private final String amqpUrl;
+    private final String queue = "";
+    private final String exchange = "rapids";
+    private final String exchangeType = "fanout";
+    private final String routingKey;
+    private final Connection connection;
+    private AMQP.BasicProperties basicProperties;
 
-    public Connections(String host, String port) {
+    public RabbitMqRapids(String host, String port) {
         this.amqpUrl = amqpUrl(host, port);
         ConnectionFactory factory = factory();
         this.connection = connection(factory);
@@ -39,16 +42,18 @@ public class Connections implements AutoCloseable {
         bindQueueToExchange(channel);
     }
 
-    public void deliveryLoop(MessageHandler handler) {
+    public void connect() {
         logger.info(String.format(" [*] Waiting for solutions on the %s bus... To exit press CTRL+C", amqpUrl));
         while (true) {
             final QueueingConsumer.Delivery delivery = delivery(consumer);
             if (delivery != null) {
-                try {
-                    handler.handle(message(delivery));
-                    ack(channel, delivery);
-                } catch (Exception ex) {
-                    nack(channel, delivery);
+                for (MessageListener listener : listeners) {
+                    try {
+                        listener.message(this, message(delivery));
+                        ack(channel, delivery);
+                    } catch (Exception ex) {
+                        nack(channel, delivery);
+                    }
                 }
             }
         }
@@ -179,5 +184,4 @@ public class Connections implements AutoCloseable {
             throw new RuntimeException(message, ex);
         }
     }
-
 }

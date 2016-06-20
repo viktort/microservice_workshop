@@ -11,15 +11,15 @@ import java.util.List;
 // Understands a stream of valid JSON packets meeting certain criteria
 // Implements GOF Observer pattern to trigger listeners with packets and/or problems
 // Implements GOF Command pattern for validations
-public class River implements Rapids.MessageListener {
+public class River implements RapidsConnection.MessageListener {
 
-    private final Rapids rapids;
+    private final RapidsConnection rapidsConnection;
     private final List<PacketListener> listeners = new ArrayList<>();
     private final List<Validation> validations = new ArrayList<>();
 
-    public River(Rapids rapids) {
-        this.rapids = rapids;
-        rapids.register(this);
+    public River(RapidsConnection rapidsConnection) {
+        this.rapidsConnection = rapidsConnection;
+        rapidsConnection.register(this);
     }
 
     public void register(PacketListener listener) {
@@ -27,7 +27,7 @@ public class River implements Rapids.MessageListener {
     }
 
     @Override
-    public void message(Rapids sendPort, String message) {
+    public void message(RapidsConnection sendPort, String message) {
         PacketProblems problems = new PacketProblems(message);
         Packet packet = new Packet(message, problems);
         for (Validation v : validations) v.validate(packet);
@@ -37,11 +37,11 @@ public class River implements Rapids.MessageListener {
             packet(sendPort, packet, problems);
     }
 
-    private void packet(Rapids sendPort, Packet packet, PacketProblems warnings) {
+    private void packet(RapidsConnection sendPort, Packet packet, PacketProblems warnings) {
         for (PacketListener l : listeners) l.packet(sendPort, packet, warnings);
     }
 
-    private void onError(Rapids sendPort, PacketProblems errors) {
+    private void onError(RapidsConnection sendPort, PacketProblems errors) {
         for (PacketListener l : listeners) l.onError(sendPort, errors);
     }
 
@@ -66,8 +66,8 @@ public class River implements Rapids.MessageListener {
     }
 
     public interface PacketListener {
-        void packet(Rapids rapids, Packet packet, PacketProblems warnings);
-        void onError(Rapids rapids, PacketProblems errors);
+        void packet(RapidsConnection connection, Packet packet, PacketProblems warnings);
+        void onError(RapidsConnection connection, PacketProblems errors);
     }
 
     private interface Validation {

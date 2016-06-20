@@ -4,12 +4,10 @@ import com.google.gson.Gson;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.sun.xml.internal.ws.dump.LoggingDumpTube.Position.Before;
 import static org.junit.Assert.*;
 
 /*
@@ -18,7 +16,7 @@ import static org.junit.Assert.*;
  * @author Fred George
  */
 
-// Ensures that River triggers its RiverListeners correctly
+// Ensures that River triggers its RiverListeners with correct Packets
 public class RiverTest {
 
     private final static String SOLUTION_STRING =
@@ -42,35 +40,37 @@ public class RiverTest {
     private static final String INTERESTING_KEY = "frequent_renter";
     private static final String SOLUTIONS_KEY = "solutions";
 
-    private TestRapids rapids;
+    private TestRapidsConnection rapidsConnection;
     private River river;
 
     @Before
     public void setUp() throws Exception {
-        rapids = new TestRapids();
-        river = new River(rapids);
+        rapidsConnection = new TestRapidsConnection();
+        river = new River(rapidsConnection);
+        rapidsConnection.register(river);
+        rapidsConnection.connect();
     }
 
     @Test
     public void validJsonExtracted() throws Exception {
         river.register(new TestPacketListener () {
             @Override
-            public void packet(Rapids rapids, Packet packet, PacketProblems warnings) {
+            public void packet(RapidsConnection connection, Packet packet, PacketProblems warnings) {
                 assertFalse(warnings.hasErrors());
             }
         });
-        rapids.process(SOLUTION_STRING);
+        rapidsConnection.process(SOLUTION_STRING);
     }
 
     @Test
     public void invalidJsonFormat() throws Exception {
         river.register(new TestPacketListener () {
             @Override
-            public void onError(Rapids rapids, PacketProblems errors) {
+            public void onError(RapidsConnection connection, PacketProblems errors) {
                 assertTrue(errors.hasErrors());
             }
         });
-        rapids.process(MISSING_COMMA);
+        rapidsConnection.process(MISSING_COMMA);
     }
 
     @Test
@@ -78,11 +78,11 @@ public class RiverTest {
         river.require(NEED_KEY);
         river.register(new TestPacketListener() {
             @Override
-            public void packet(Rapids rapids, Packet packet, PacketProblems warnings) {
+            public void packet(RapidsConnection connection, Packet packet, PacketProblems warnings) {
                 assertEquals("car_rental_offer", packet.get(NEED_KEY));
             }
         });
-        rapids.process(SOLUTION_STRING);
+        rapidsConnection.process(SOLUTION_STRING);
     }
 
     @Test
@@ -90,11 +90,11 @@ public class RiverTest {
         river.require("missing key");
         river.register(new TestPacketListener() {
             @Override
-            public void onError(Rapids rapids, PacketProblems errors) {
+            public void onError(RapidsConnection connection, PacketProblems errors) {
                 assertTrue(errors.hasErrors());
             }
         });
-        rapids.process(SOLUTION_STRING);
+        rapidsConnection.process(SOLUTION_STRING);
     }
 
     @Test
@@ -102,13 +102,13 @@ public class RiverTest {
         river.require(NEED_KEY);
         river.register(new TestPacketListener() {
             @Override
-            public void packet(Rapids rapids, Packet packet, PacketProblems warnings) {
+            public void packet(RapidsConnection connection, Packet packet, PacketProblems warnings) {
                 assertEquals("car_rental_offer", packet.get(NEED_KEY));
                 packet.put(NEED_KEY, "airline_offer");
                 assertEquals("airline_offer", packet.get(NEED_KEY));
             }
         });
-        rapids.process(SOLUTION_STRING);
+        rapidsConnection.process(SOLUTION_STRING);
     }
 
     @Test
@@ -116,13 +116,13 @@ public class RiverTest {
         river.forbid(KEY_TO_BE_ADDED);
         river.register(new TestPacketListener() {
             @Override
-            public void packet(Rapids rapids, Packet packet, PacketProblems warnings) {
+            public void packet(RapidsConnection connection, Packet packet, PacketProblems warnings) {
                 assertNull(packet.get(KEY_TO_BE_ADDED));
                 packet.put(KEY_TO_BE_ADDED, "Bingo!");
                 assertEquals("Bingo!", packet.get(KEY_TO_BE_ADDED));
             }
         });
-        rapids.process(SOLUTION_STRING);
+        rapidsConnection.process(SOLUTION_STRING);
     }
 
     @Test
@@ -130,11 +130,11 @@ public class RiverTest {
         river.forbid(EMPTY_ARRAY_KEY);
         river.register(new TestPacketListener() {
             @Override
-            public void packet(Rapids rapids, Packet packet, PacketProblems warnings) {
+            public void packet(RapidsConnection connection, Packet packet, PacketProblems warnings) {
                 assertFalse(warnings.hasErrors());
             }
         });
-        rapids.process(SOLUTION_STRING);
+        rapidsConnection.process(SOLUTION_STRING);
     }
 
     @Test
@@ -142,11 +142,11 @@ public class RiverTest {
         river.forbid(INTERESTING_KEY);
         river.register(new TestPacketListener() {
             @Override
-            public void packet(Rapids rapids, Packet packet, PacketProblems warnings) {
+            public void packet(RapidsConnection connection, Packet packet, PacketProblems warnings) {
                 assertFalse(warnings.hasErrors());
             }
         });
-        rapids.process(SOLUTION_STRING);
+        rapidsConnection.process(SOLUTION_STRING);
     }
 
     @Test
@@ -154,11 +154,11 @@ public class RiverTest {
         river.forbid(NEED_KEY);
         river.register(new TestPacketListener() {
             @Override
-            public void onError(Rapids rapids, PacketProblems errors) {
+            public void onError(RapidsConnection connection, PacketProblems errors) {
                 assertTrue(errors.hasErrors());
             }
         });
-        rapids.process(SOLUTION_STRING);
+        rapidsConnection.process(SOLUTION_STRING);
     }
 
     @Test
@@ -166,26 +166,26 @@ public class RiverTest {
         river.interestedIn(INTERESTING_KEY);
         river.register(new TestPacketListener() {
             @Override
-            public void packet(Rapids rapids, Packet packet, PacketProblems warnings) {
+            public void packet(RapidsConnection connection, Packet packet, PacketProblems warnings) {
                 assertFalse(warnings.hasErrors());
                 packet.put(INTERESTING_KEY, "interesting value");
                 assertEquals("interesting value", packet.get(INTERESTING_KEY));
             }
         });
-        rapids.process(SOLUTION_STRING);
+        rapidsConnection.process(SOLUTION_STRING);
     }
 
     @Test
     public void renderingJson() throws Exception {
         river.register(new TestPacketListener () {
             @Override
-            public void packet(Rapids rapids, Packet packet, PacketProblems warnings) {
+            public void packet(RapidsConnection connection, Packet packet, PacketProblems warnings) {
                 assertFalse(warnings.hasErrors());
                 String expected = SOLUTION_STRING.replace(":2", ":3"); // Update read_count
                 assertJsonEquals(expected, packet.toJson());
             }
         });
-        rapids.process(SOLUTION_STRING);
+        rapidsConnection.process(SOLUTION_STRING);
     }
 
     @Test
@@ -193,7 +193,7 @@ public class RiverTest {
         river.require(NEED_KEY);
         river.register(new TestPacketListener () {
             @Override
-            public void packet(Rapids rapids, Packet packet, PacketProblems warnings) {
+            public void packet(RapidsConnection connection, Packet packet, PacketProblems warnings) {
                 packet.put(NEED_KEY, "airline_offer");
                 String expected = SOLUTION_STRING
                         .replace(":2", ":3")
@@ -201,7 +201,7 @@ public class RiverTest {
                 assertJsonEquals(expected, packet.toJson());
             }
         });
-        rapids.process(SOLUTION_STRING);
+        rapidsConnection.process(SOLUTION_STRING);
     }
 
     @Test
@@ -212,11 +212,11 @@ public class RiverTest {
                 .interestedIn(INTERESTING_KEY);
         river.register(new TestPacketListener () {
             @Override
-            public void packet(Rapids rapids, Packet packet, PacketProblems warnings) {
+            public void packet(RapidsConnection connection, Packet packet, PacketProblems warnings) {
                 assertFalse(warnings.hasErrors());
             }
         });
-        rapids.process(SOLUTION_STRING);
+        rapidsConnection.process(SOLUTION_STRING);
     }
 
     @Test
@@ -224,12 +224,12 @@ public class RiverTest {
         river.require(SOLUTIONS_KEY);
         river.register(new TestPacketListener () {
             @Override
-            public void packet(Rapids rapids, Packet packet, PacketProblems warnings) {
+            public void packet(RapidsConnection connection, Packet packet, PacketProblems warnings) {
                 List solutions = packet.getList(SOLUTIONS_KEY);
                 assertEquals(3, solutions.size());
             }
         });
-        rapids.process(SOLUTION_STRING);
+        rapidsConnection.process(SOLUTION_STRING);
     }
 
     @Test
@@ -237,34 +237,34 @@ public class RiverTest {
         river.requireValue(NEED_KEY, "car_rental_offer");
         river.register(new TestPacketListener () {
             @Override
-            public void packet(Rapids rapids, Packet packet, PacketProblems warnings) {
+            public void packet(RapidsConnection connection, Packet packet, PacketProblems warnings) {
                 assertFalse(warnings.hasErrors());
             }
         });
-        rapids.process(SOLUTION_STRING);
+        rapidsConnection.process(SOLUTION_STRING);
     }
 
     @Test
     public void readCountAddedIfMissing() throws Exception {
         river.register(new TestPacketListener () {
             @Override
-            public void packet(Rapids rapids, Packet packet, PacketProblems warnings) {
+            public void packet(RapidsConnection connection, Packet packet, PacketProblems warnings) {
                 assertFalse(warnings.hasErrors());
                 assertEquals(0.0, json(packet.toJson()).get(Packet.READ_COUNT));
             }
         });
-        rapids.process("{}");
+        rapidsConnection.process("{}");
     }
 
     @Test(expected = PacketProblems.class)
     public void problemsCanBeThrown() throws Exception {
         river.register(new TestPacketListener () {
             @Override
-            public void onError(Rapids rapids, PacketProblems errors) {
+            public void onError(RapidsConnection connection, PacketProblems errors) {
                 throw errors;
             }
         });
-        rapids.process(MISSING_COMMA);
+        rapidsConnection.process(MISSING_COMMA);
     }
 
     private void assertJsonEquals(String expected, String actual) {
@@ -275,7 +275,8 @@ public class RiverTest {
         return new Gson().fromJson(jsonString, HashMap.class);
     }
 
-    private class TestRapids extends Rapids {
+    private class TestRapidsConnection extends RapidsConnection {
+        @Override public void connect() { }  // Ignore for this test
         void process(String message) {
             for (MessageListener l : listeners) l.message(this, message);
         }
@@ -283,7 +284,7 @@ public class RiverTest {
 
     private abstract class TestPacketListener implements River.PacketListener {
         @Override
-        public void packet(Rapids rapids, Packet packet, PacketProblems warnings) {
+        public void packet(RapidsConnection connection, Packet packet, PacketProblems warnings) {
             fail("Unexpected success parsing JSON packet. Packet is:\n"
                     + packet.toJson()
                     + "\nWarnings discovered were:\n"
@@ -291,7 +292,7 @@ public class RiverTest {
         }
 
         @Override
-        public void onError(Rapids rapids, PacketProblems errors) {
+        public void onError(RapidsConnection connection, PacketProblems errors) {
             fail("Unexpected JSON packet problem(s):\n" + errors.toString());
         }
     }

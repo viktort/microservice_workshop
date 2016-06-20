@@ -8,8 +8,8 @@ package com.nrkei.microservices.rapids_rivers;
 import java.util.ArrayList;
 import java.util.List;
 
-// Understands an undistinguished stream of messages
-public abstract class Rapids {
+// Understands accessing a stream of messages
+public abstract class RapidsConnection {
 
     protected final List<MessageListener> listeners = new ArrayList<>();
 
@@ -17,7 +17,9 @@ public abstract class Rapids {
         listeners.add(listener);
     }
 
+    public abstract void connect();  // Start receiving messages and forwarding to listeners
+
     public interface MessageListener {
-        void message(Rapids sendPort, String message);
+        void message(RapidsConnection sendPort, String message);
     }
 }
