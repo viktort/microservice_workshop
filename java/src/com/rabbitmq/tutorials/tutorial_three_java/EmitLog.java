@@ -6,11 +6,15 @@ import com.rabbitmq.client.Channel;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 public class EmitLog {
 
+    private static final String RABBIT_MQ_PUB_SUB = "fanout";
     private static final String EXCHANGE_NAME = "rapids";
+
     private static ConnectionFactory factory;
     private static Connection connection;
     private static Channel channel;
@@ -18,8 +22,9 @@ public class EmitLog {
     // Invoke with parameters: <ip_address> <port> <optional_message>
     public static void main(String[] argv) {
         try {
+            validateArgs(argv);
             establishConnectivity(argv);
-            configurePubSub();
+            configurePubOnly();
             String message = message(argv);
             while (true) {
                 channel.basicPublish(EXCHANGE_NAME, "", null, message.getBytes("UTF-8"));
@@ -39,9 +44,10 @@ public class EmitLog {
         }
     }
 
-    private static void configurePubSub() {
+    private static void configurePubOnly() {
         try {
-            channel.exchangeDeclare(EXCHANGE_NAME, "fanout");   // RabbitMQ terminology for pub/sub
+            // Configure for non-durable, auto-delete
+            channel.exchangeDeclare(EXCHANGE_NAME, RABBIT_MQ_PUB_SUB, false, true, new HashMap<String, Object>());
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException("IOException on declaring exchange", e);
@@ -57,10 +63,17 @@ public class EmitLog {
         channel = channel();
     }
 
+    private static void validateArgs(String[] argv) {
+        if (argv.length < 2) {
+            System.out.println("Start this service with <ip_address> <port> for RabbitMQ");
+            throw new IllegalArgumentException("\"Start this service with <ip_address> <port> for RabbitMQ\"");
+        }
+    }
+
     private static void safeClose() {
         try {
-            channel.close();
-            connection.close();
+            if (channel != null) channel.close();
+            if (connection != null) connection.close();
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException("IOException on close", e);
