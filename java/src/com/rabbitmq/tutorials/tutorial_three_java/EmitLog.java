@@ -45,12 +45,16 @@ public class EmitLog {
     }
 
     private static void configurePubOnly() {
+        declareExchange();
+    }
+
+    private static void declareExchange() {
         try {
             // Configure for non-durable, auto-delete
             channel.exchangeDeclare(EXCHANGE_NAME, RABBIT_MQ_PUB_SUB, false, true, new HashMap<String, Object>());
         } catch (IOException e) {
             e.printStackTrace();
-            throw new RuntimeException("IOException on declaring exchange", e);
+            throw new RuntimeException("IOException declaring Exchange", e);
         }
     }
 
