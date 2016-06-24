@@ -19,7 +19,7 @@ public class Packet {
     private final Map<String, Object> recognizedKeys = new HashMap<>();
     private final PacketProblems problems;
 
-    Packet(Map<String, Object> jsonHash) {
+    public Packet(Map<String, Object> jsonHash) {
         problems = null;  // TODO: Placeholder until this constructor is removed
         this.jsonHash = jsonHash;
         if (!jsonHash.containsKey(READ_COUNT)) jsonHash.put(READ_COUNT, -1.0);

@@ -19,7 +19,6 @@ import java.util.concurrent.TimeoutException;
 
 // Understands an event bus implemented with RabbitMQ in pub/sub mode (fanout)
 public class RabbitMqRapids extends RapidsConnection implements AutoCloseable {
-    private static final Logger logger = LoggerFactory.getLogger(Connection.class);
     private final Channel channel;
     private final QueueingConsumer consumer;
     private final String amqpUrl;
@@ -43,7 +42,7 @@ public class RabbitMqRapids extends RapidsConnection implements AutoCloseable {
     }
 
     public void connect() {
-        logger.info(String.format(" [*] Waiting for solutions on the %s bus... To exit press CTRL+C", amqpUrl));
+        System.out.println(String.format(" [*] Waiting for solutions on the %s bus... To exit press CTRL+C", amqpUrl));
         while (true) {
             final QueueingConsumer.Delivery delivery = delivery(consumer);
             if (delivery != null) {
@@ -98,7 +97,7 @@ public class RabbitMqRapids extends RapidsConnection implements AutoCloseable {
         try {
             long deliveryTag = delivery.getEnvelope().getDeliveryTag();
             channel.basicNack(deliveryTag, false, false);
-            logger.warn(String.format("Rejected message: tag: %d body: %s ", deliveryTag, new String(delivery.getBody())));
+            System.out.println(String.format("Rejected message: tag: %d body: %s ", deliveryTag, new String(delivery.getBody())));
         } catch (IOException e) {
             throw new RuntimeException("Failed to nack delivery:", e);
         }
@@ -177,7 +176,7 @@ public class RabbitMqRapids extends RapidsConnection implements AutoCloseable {
         try {
             ConnectionFactory factory = new ConnectionFactory();
             factory.setUri(amqpUrl);
-            logger.info(amqpUrl);
+            System.out.println(amqpUrl);
             return factory;
         } catch (Exception ex) {
             String message = String.format("Failed to initialize ConnectionFactory with %s.", amqpUrl);

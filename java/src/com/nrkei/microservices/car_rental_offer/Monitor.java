@@ -10,13 +10,9 @@ import com.nrkei.microservices.rapids_rivers.PacketProblems;
 import com.nrkei.microservices.rapids_rivers.RapidsConnection;
 import com.nrkei.microservices.rapids_rivers.River;
 import com.nrkei.microservices.rapids_rivers.rabbit_mq.RabbitMqRapids;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 // Understands the messages on an event bus
 public class Monitor implements River.PacketListener {
-
-    protected static Logger logger = LoggerFactory.getLogger(Monitor.class);
 
     public static void main(String[] args) {
         String host = args[0];
@@ -31,11 +27,11 @@ public class Monitor implements River.PacketListener {
 
     @Override
     public void packet(RapidsConnection connection, Packet packet, PacketProblems warnings) {
-        logger.info(String.format(" [>] %s", warnings));
+        System.out.println(String.format(" [>] %s", warnings));
     }
 
     @Override
     public void onError(RapidsConnection connection, PacketProblems errors) {
-        logger.error(String.format(" [>] %s", errors));
+        System.out.println(String.format(" [>] %s", errors));
     }
 }
