@@ -7,180 +7,155 @@ package com.nrkei.microservices.rapids_rivers.rabbit_mq;
 
 import com.nrkei.microservices.rapids_rivers.RapidsConnection;
 import com.rabbitmq.client.*;
-// TODO: Consider just using default Java console logging
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
 // Understands an event bus implemented with RabbitMQ in pub/sub mode (fanout)
 public class RabbitMqRapids extends RapidsConnection implements AutoCloseable {
-    private final Channel channel;
-    private final QueueingConsumer consumer;
-    private final String amqpUrl;
-    private final String queue = "";
-    private final String exchange = "rapids";
-    private final String exchangeType = "fanout";
-    private final String routingKey;
-    private final Connection connection;
-    private AMQP.BasicProperties basicProperties;
 
-    public RabbitMqRapids(String host, String port) {
-        this.amqpUrl = amqpUrl(host, port);
-        ConnectionFactory factory = factory();
-        this.connection = connection(factory);
-        this.basicProperties = new AMQP.BasicProperties().builder().build();
-        this.channel = channel(connection);
-        this.routingKey = queue;  // Assumes queue and routingKey are the same.
-        declareExchange();
-        this.consumer = consumer(channel, queue(channel));
-        bindQueueToExchange(channel);
+    // See RabbitMQ pub/sub documentation: https://www.rabbitmq.com/tutorials/tutorial-three-python.html
+    private static final String RABBIT_MQ_PUB_SUB = "fanout";
+    private static final String EXCHANGE_NAME = "rapids";
+
+    private final ConnectionFactory factory;
+    private Connection connection;
+    private Channel channel;
+    private final String queueName;
+
+    public RabbitMqRapids(String serviceName, String host, String port) {
+        queueName = serviceName + "_" + UUID.randomUUID().toString();
+        factory = new ConnectionFactory();
+        factory.setHost(host);
+        factory.setPort(Integer.parseInt(port));
     }
 
-    public void connect() {
-        System.out.println(String.format(" [*] Waiting for solutions on the %s bus... To exit press CTRL+C", amqpUrl));
-        while (true) {
-            final QueueingConsumer.Delivery delivery = delivery(consumer);
-            if (delivery != null) {
-                for (MessageListener listener : listeners) {
-                    try {
-                        listener.message(this, message(delivery));
-                        ack(channel, delivery);
-                    } catch (Exception ex) {
-                        nack(channel, delivery);
-                    }
-                }
-            }
+    @Override
+    public void register(MessageListener listener) {
+        if (channel == null) connect();
+        if (listeners.isEmpty()) {
+            configureQueue();
+            System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
+            consumeMessages(consumer(channel));
         }
+        super.register(listener);
     }
 
+    @Override
     public void publish(String message) {
+        if (channel == null) connect();
         try {
-            // Assume that queue and routingKey are the same, as in other parts of Pika
-            channel.basicPublish(exchange, queue, basicProperties, message.getBytes());
-        } catch (Exception e) {
-            throw new RuntimeException("Could not publish message:", e);
+            channel.basicPublish(EXCHANGE_NAME, "", null, message.getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            throw new RuntimeException("UnsupportedEncodingException on message extraction", e);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("IOException when sending a message", e);
         }
+    }
+
+    private void connect() {
+        establishConnectivity();
+        declareExchange();
+    }
+
+    private void establishConnectivity() {
+        connection = connection();
+        channel = channel();
+    }
+
+    private Connection connection() {
+        try {
+            return factory.newConnection();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("IOException on creating Connection", e);
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+            throw new RuntimeException("TimeoutException on creating Connection", e);
+        }
+    }
+
+    private Channel channel() {
+        try {
+            return connection.createChannel();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("IOException in creating Channel", e);
+        }
+    }
+
+    private void declareExchange() {
+        try {
+            // Configure for non-durable, auto-delete
+            channel.exchangeDeclare(EXCHANGE_NAME, RABBIT_MQ_PUB_SUB, false, true, new HashMap<String, Object>());
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("IOException declaring Exchange", e);
+        }
+    }
+
+    private void configureQueue() {
+        declareQueue();
+        bindQueueToExchange();
+    }
+
+    private AMQP.Queue.DeclareOk declareQueue() {
+        try {
+            // Configured for non-durable, auto-delete, and exclusive
+            return channel.queueDeclare(queueName, false, true, true, new HashMap<String, Object>());
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("IOException declaring Queue", e);
+        }
+    }
+
+    private void bindQueueToExchange() {
+        try {
+            channel.queueBind(queueName, EXCHANGE_NAME, "");
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("IOException binding Queue to Exchange", e);
+        }
+    }
+
+    private String consumeMessages(Consumer consumer) {
+        try {
+            return channel.basicConsume(queueName, true, consumer);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("IOException while consuming messages", e);
+        }
+    }
+
+    private DefaultConsumer consumer(final Channel channel) {
+        final RapidsConnection sendPort = this;
+        return new DefaultConsumer(channel) {
+            @Override
+            public void handleDelivery(String consumerTag, Envelope envelope,
+                                       AMQP.BasicProperties properties, byte[] body) throws IOException {
+                final String message = new String(body, "UTF-8");
+//                System.out.println(" [x] Received '" + message + "'");
+                for (MessageListener listener : listeners) listener.message(sendPort, message);
+            }
+        };
     }
 
     public void close() {
         try {
-            channel.close();
-            connection.close();
-        } catch (Exception e) {
-            throw new RuntimeException("Could not close connection:", e);
-        }
-    }
-
-    protected Map<String, Object> headers(QueueingConsumer.Delivery delivery) {
-        AMQP.BasicProperties properties = delivery.getProperties();
-        return properties.getHeaders();
-    }
-
-    protected String amqpUrl(String host, String port) {
-        return String.format("amqp://guest:guest@%s:%s", host, port);
-    }
-
-    protected String message(QueueingConsumer.Delivery delivery) {
-        try {
-            return new String(delivery.getBody(), "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException("Failed to parse message:", e);
-        }
-    }
-
-    protected void nack(Channel channel, QueueingConsumer.Delivery delivery) {
-        try {
-            long deliveryTag = delivery.getEnvelope().getDeliveryTag();
-            channel.basicNack(deliveryTag, false, false);
-            System.out.println(String.format("Rejected message: tag: %d body: %s ", deliveryTag, new String(delivery.getBody())));
+            if (channel != null) channel.close();
+            if (connection != null) connection.close();
         } catch (IOException e) {
-            throw new RuntimeException("Failed to nack delivery:", e);
-        }
-    }
-
-    protected void ack(Channel channel, QueueingConsumer.Delivery delivery) {
-        try {
-            channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to ack delivery:", e);
-        }
-    }
-
-    protected QueueingConsumer.Delivery delivery(QueueingConsumer consumer) {
-        try {
-            return consumer.nextDelivery();
-        } catch (InterruptedException e) {
-            throw new RuntimeException("Consumer interrupted:", e);
-        }
-    }
-
-    protected QueueingConsumer consumer(Channel channel, String queueName) {
-        try {
-            QueueingConsumer consumer = new QueueingConsumer(channel);
-            channel.basicConsume(queueName, false, consumer);
-            return consumer;
-        } catch (IOException e) {
-            throw new RuntimeException("Could not create consumer:", e);
-        }
-    }
-
-    protected void bindQueueToExchange(Channel channel) {
-        try {
-            channel.queueBind(queue, exchange, routingKey);
-        } catch (IOException e) {
-            throw new RuntimeException("Could not bind queue to exchange:", e);
-        }
-    }
-
-    protected String queue(Channel channel) {
-        try {
-            channel.queueDeclare(queue, false, true, false, new HashMap<String, Object>());
-            return queue;
-        } catch (IOException e) {
-            throw new RuntimeException("Could not declare queue:", e);
-        }
-    }
-
-    protected void declareExchange() {
-        try {
-            channel.exchangeDeclare(exchange, exchangeType, true);
-        } catch (Exception e) {
-            throw new RuntimeException("Could not declare exchange:", e);
-        }
-    }
-
-    protected Channel channel(Connection connection) {
-        try {
-            return connection.createChannel();
-        } catch (IOException e) {
-            throw new RuntimeException("Could not create channel:", e);
-        }
-    }
-
-    protected Connection connection(ConnectionFactory factory) {
-        try {
-            return factory.newConnection();
-        } catch (IOException e) {
-            throw new RuntimeException("Could not create channel:", e);
+            e.printStackTrace();
+            throw new RuntimeException("IOException on close", e);
         } catch (TimeoutException e) {
-            throw new RuntimeException("Time out in creating channel: ", e);
+            e.printStackTrace();
+            throw new RuntimeException("TimeoutException on close", e);
         }
     }
 
-    protected ConnectionFactory factory() {
-        try {
-            ConnectionFactory factory = new ConnectionFactory();
-            factory.setUri(amqpUrl);
-            System.out.println(amqpUrl);
-            return factory;
-        } catch (Exception ex) {
-            String message = String.format("Failed to initialize ConnectionFactory with %s.", amqpUrl);
-            throw new RuntimeException(message, ex);
-        }
-    }
 }

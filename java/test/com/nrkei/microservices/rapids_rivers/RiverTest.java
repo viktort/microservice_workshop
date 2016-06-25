@@ -48,7 +48,6 @@ public class RiverTest {
         rapidsConnection = new TestRapidsConnection();
         river = new River(rapidsConnection);
         rapidsConnection.register(river);
-        rapidsConnection.connect();
     }
 
     @Test
@@ -276,7 +275,6 @@ public class RiverTest {
     }
 
     private class TestRapidsConnection extends RapidsConnection {
-        @Override public void connect() { }  // Ignore for this test
         @Override public void publish(String message) { }  // Ignore for this test
         void process(String message) {
             for (MessageListener l : listeners) l.message(this, message);

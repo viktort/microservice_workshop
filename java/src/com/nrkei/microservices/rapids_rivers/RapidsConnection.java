@@ -17,8 +17,6 @@ public abstract class RapidsConnection {
         listeners.add(listener);
     }
 
-    public abstract void connect();  // Start receiving messages and forwarding to listeners
-
     public abstract void publish(String message);
 
     public interface MessageListener {

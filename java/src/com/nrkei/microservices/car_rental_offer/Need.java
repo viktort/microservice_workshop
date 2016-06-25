@@ -13,12 +13,11 @@ import java.util.HashMap;
 // Understands the requirement for advertising on a site
 public class Need {
 
-
     public static void main(String[] args) {
         String host = args[0];
         String port = args[1];
 
-        final RapidsConnection rapidsConnection = new RabbitMqRapids(host, port);
+        final RapidsConnection rapidsConnection = new RabbitMqRapids("car_rental_need", host, port);
         publish(rapidsConnection);
     }
 
