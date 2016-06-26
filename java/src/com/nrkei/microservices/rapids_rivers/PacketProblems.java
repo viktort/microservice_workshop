@@ -49,7 +49,7 @@ public class PacketProblems extends RuntimeException {
     public String toString() {
         if (!hasMessages()) return "No errors detected in JSON:\n\t" + originalJson;
         StringBuffer results = new StringBuffer();
-        results.append("Messages exist. Original JSON string is:\n\t");
+        results.append("Errors and/or messages exist. Original JSON string is:\n\t");
         results.append(originalJson);
         append("Severe errors", severeErrors, results);
         append("Errors", errors, results);
