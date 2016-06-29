@@ -23,7 +23,7 @@ class RentalOfferMonitor
 private
 
   def monitor_solutions(channel, exchange)
-    queue = channel.queue("", :exclusive => true)
+    queue = channel.queue("", durable: false, exclusive: true, auto_delete: true)
     queue.bind exchange
     puts " [*] Waiting for solutions on the bus... To exit press CTRL+C"
     queue.subscribe(block: true) do |delivery_info, properties, body|

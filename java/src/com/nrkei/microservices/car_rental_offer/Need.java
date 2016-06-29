@@ -17,7 +17,7 @@ public class Need {
         String host = args[0];
         String port = args[1];
 
-        final RapidsConnection rapidsConnection = new RabbitMqRapids("car_rental_need", host, port);
+        final RapidsConnection rapidsConnection = new RabbitMqRapids("car_rental_need_java", host, port);
         publish(rapidsConnection);
     }
 

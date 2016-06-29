@@ -13,7 +13,7 @@ class Connection
                        automatically_recover: false)
       conn.start
       channel = conn.create_channel
-      exchange = channel.fanout("rapids", durable: true)
+      exchange = channel.fanout("rapids", durable: true, auto_delete: true)
       yield(channel, exchange)
     rescue Interrupt
       channel.close

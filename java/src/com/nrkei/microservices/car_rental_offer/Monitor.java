@@ -18,10 +18,9 @@ public class Monitor implements River.PacketListener {
         String host = args[0];
         String port = args[1];
 
-        final RapidsConnection rapidsConnection = new RabbitMqRapids("monitor_all", host, port);
+        final RapidsConnection rapidsConnection = new RabbitMqRapids("monitor_all_java", host, port);
         final River river = new River(rapidsConnection);
         river.register(new Monitor());
-        rapidsConnection.register(river);
     }
 
     @Override
