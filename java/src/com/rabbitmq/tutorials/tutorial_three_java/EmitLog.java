@@ -29,8 +29,7 @@ public class EmitLog {
     }
 
     private static String getMessage(String[] strings){
-        if (strings.length < 1)
-            return "info: Hello World!";
+        if (strings.length < 1) return "info: Hello World!";
         return joinStrings(strings, " ");
     }
 

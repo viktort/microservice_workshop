@@ -91,8 +91,8 @@ public class RabbitMqRapids extends RapidsConnection implements AutoCloseable {
 
     private void declareExchange() {
         try {
-            // Configure for non-durable, auto-delete
-            channel.exchangeDeclare(EXCHANGE_NAME, RABBIT_MQ_PUB_SUB, false, true, new HashMap<String, Object>());
+            // Configure for durable, auto-delete
+            channel.exchangeDeclare(EXCHANGE_NAME, RABBIT_MQ_PUB_SUB, true, true, new HashMap<String, Object>());
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException("IOException declaring Exchange", e);
