@@ -3,6 +3,7 @@
  * May be used freely except for training; license required for training.
  */
 
+using System.Net.Mime;
 using NUnit.Framework;
 
 namespace MicroServiceWorkshop.Tests
@@ -23,7 +24,39 @@ namespace MicroServiceWorkshop.Tests
         [Test]
         public void NoProblemsFoundDefault()
         {
-            Assert.False(_problems.HasProblems());
+            Assert.False(_problems.HasErrors());
+        }
+
+        [Test]
+        public void ErrorsDetected()
+        {
+            _problems.Error("Simple error");
+            Assert.True(_problems.HasErrors());
+            Assert.That(_problems.ToString(), Does.Contain("Simple error"));
+        }
+
+        [Test]
+        public void SevereErrorsDetected()
+        {
+            _problems.SevereError("Severe error");
+            Assert.True(_problems.HasErrors());
+            Assert.That(_problems.ToString(), Does.Contain("Severe error"));
+        }
+
+        [Test]
+        public void WarningsDetected()
+        {
+            _problems.Warning("Warning message");
+            Assert.False(_problems.HasErrors());
+            Assert.That(_problems.ToString(), Does.Contain("Warning message"));
+        }
+
+        [Test]
+        public void InformationalMessageDetected()
+        {
+            _problems.Information("Information only message");
+            Assert.False(_problems.HasErrors());
+            Assert.That(_problems.ToString(), Does.Contain("Information only message"));
         }
     }
 }
