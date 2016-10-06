@@ -3,9 +3,7 @@
  * May be used freely except for training; license required for training.
  */
 
-using System;
 using NUnit.Framework;
-using MicroServiceWorkshop;
 
 namespace MicroServiceWorkshop.Tests
 {
@@ -13,12 +11,19 @@ namespace MicroServiceWorkshop.Tests
     [TestFixture]
     public class PacketProblemsTest
     {
-        private PacketProblems problems;
+        private static readonly string ValidJson = "{\"key1\":\"value1\"}";
+        private PacketProblems _problems;
+
+        [SetUp]
+        public void SetUp()
+        {
+            _problems = new PacketProblems(ValidJson);
+        }
 
         [Test]
-        public void CanReach()
+        public void NoProblemsFoundDefault()
         {
-
+            Assert.False(_problems.HasProblems());
         }
     }
 }
