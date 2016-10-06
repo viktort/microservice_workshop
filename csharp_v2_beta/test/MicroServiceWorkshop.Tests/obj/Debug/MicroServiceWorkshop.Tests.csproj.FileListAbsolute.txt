@@ -1,0 +1,1 @@
+C:\Users\dev\src\microservice_workshop\csharp_v2_beta\test\MicroServiceWorkshop.Tests\obj\Debug\MicroServiceWorkshop.Tests.csprojResolveAssemblyReference.cache
