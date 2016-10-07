@@ -41,6 +41,7 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
             PacketProblems problems = new PacketProblems(MissingComma);
             Packet p = new Packet(MissingComma, problems);
             Assert.True(problems.HasErrors());
+            Assert.That(problems.ToString(), Does.Contain("Invalid JSON"));
         }
     }
 }
