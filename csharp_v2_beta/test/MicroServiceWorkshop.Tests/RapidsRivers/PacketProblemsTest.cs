@@ -3,10 +3,10 @@
  * May be used freely except for training; license required for training.
  */
 
-using System.Net.Mime;
+using MicroServiceWorkshop.RapidsRivers;
 using NUnit.Framework;
 
-namespace MicroServiceWorkshop.Tests
+namespace MicroServiceWorkshop.Tests.RapidsRivers
 {
     // Ensures that PacketProblems operates correctly
     [TestFixture]

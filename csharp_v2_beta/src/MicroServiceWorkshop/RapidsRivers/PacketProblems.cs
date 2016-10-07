@@ -3,12 +3,11 @@
  * May be used freely except for training; license required for training.
  */
 
-using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 
-namespace MicroServiceWorkshop
+namespace MicroServiceWorkshop.RapidsRivers
 {
     // Understands various information about a received JSON packet
     public class PacketProblems
