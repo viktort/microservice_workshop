@@ -3,3 +3,5 @@ C:\Users\dev\src\microservice_workshop\csharp_v2_beta\src\MicroServiceWorkshop\b
 C:\Users\dev\src\microservice_workshop\csharp_v2_beta\src\MicroServiceWorkshop\obj\Debug\MicroServiceWorkshop.csprojResolveAssemblyReference.cache
 C:\Users\dev\src\microservice_workshop\csharp_v2_beta\src\MicroServiceWorkshop\obj\Debug\MicroServiceWorkshop.dll
 C:\Users\dev\src\microservice_workshop\csharp_v2_beta\src\MicroServiceWorkshop\obj\Debug\MicroServiceWorkshop.pdb
+C:\Users\dev\src\microservice_workshop\csharp_v2_beta\src\MicroServiceWorkshop\bin\Debug\Newtonsoft.Json.dll
+C:\Users\dev\src\microservice_workshop\csharp_v2_beta\src\MicroServiceWorkshop\bin\Debug\Newtonsoft.Json.xml

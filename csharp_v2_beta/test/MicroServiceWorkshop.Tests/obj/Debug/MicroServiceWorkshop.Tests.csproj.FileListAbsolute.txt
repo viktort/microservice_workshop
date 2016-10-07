@@ -7,3 +7,5 @@ C:\Users\dev\src\microservice_workshop\csharp_v2_beta\test\MicroServiceWorkshop.
 C:\Users\dev\src\microservice_workshop\csharp_v2_beta\test\MicroServiceWorkshop.Tests\bin\Debug\nunit.framework.xml
 C:\Users\dev\src\microservice_workshop\csharp_v2_beta\test\MicroServiceWorkshop.Tests\obj\Debug\MicroServiceWorkshop.Tests.dll
 C:\Users\dev\src\microservice_workshop\csharp_v2_beta\test\MicroServiceWorkshop.Tests\obj\Debug\MicroServiceWorkshop.Tests.pdb
+C:\Users\dev\src\microservice_workshop\csharp_v2_beta\test\MicroServiceWorkshop.Tests\bin\Debug\Newtonsoft.Json.dll
+C:\Users\dev\src\microservice_workshop\csharp_v2_beta\test\MicroServiceWorkshop.Tests\bin\Debug\Newtonsoft.Json.xml
