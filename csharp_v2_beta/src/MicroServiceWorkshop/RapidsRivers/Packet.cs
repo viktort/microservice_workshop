@@ -52,14 +52,21 @@ namespace MicroServiceWorkshop.RapidsRivers
         private void AddAccessor(string key)
         {
             if (_recognized_keys.ContainsKey(key)) return;
-            if (_jsonHash[key].Type == JTokenType.String)
-                _recognized_keys[key] = (string) _jsonHash[key];
-            else if (_jsonHash[key].Type == JTokenType.Integer)
-                _recognized_keys[key] = (int)_jsonHash[key];
-            else if (_jsonHash[key].Type == JTokenType.Float)
-                _recognized_keys[key] = (float) _jsonHash[key];
-            else
-                _recognized_keys[key] = _jsonHash[key];
+            switch (_jsonHash[key].Type)   // TODO: Where is polymorphism when you need it?
+            {
+                case JTokenType.String:
+                    _recognized_keys[key] = (string)_jsonHash[key];
+                    break;
+                case JTokenType.Integer:
+                    _recognized_keys[key] = (int)_jsonHash[key];
+                    break;
+                case JTokenType.Float:
+                    _recognized_keys[key] = (float)_jsonHash[key];
+                    break;
+                default:
+                    _recognized_keys[key] = _jsonHash[key];
+                    break;
+            }
         }
 
         public object Get(string key)
