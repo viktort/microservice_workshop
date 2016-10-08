@@ -102,5 +102,23 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
             Assert.True(_problems.HasErrors());
             Assert.That(_problems.ToString(), Does.Contain("missing_key"));
         }
+
+        [Test]
+        public void RequiredKeyChangeable()
+        {
+            _packet.Require(NeedKey, UserIdKey, SampleFloatKey);
+
+            Assert.AreEqual("car_rental_offer", _packet.Get(NeedKey));
+            _packet.Put(NeedKey, "airline_offer");
+            Assert.AreEqual("airline_offer", _packet.Get(NeedKey));
+
+            Assert.AreEqual(456, _packet.Get(UserIdKey));
+            _packet.Put(UserIdKey, 42);
+            Assert.AreEqual(42, _packet.Get(UserIdKey));
+
+            Assert.AreEqual(1.25, _packet.Get(SampleFloatKey));
+            _packet.Put(SampleFloatKey, -0.75);
+            Assert.AreEqual(-0.75, _packet.Get(SampleFloatKey));
+        }
     }
 }

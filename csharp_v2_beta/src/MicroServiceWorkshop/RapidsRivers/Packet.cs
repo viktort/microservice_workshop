@@ -73,5 +73,10 @@ namespace MicroServiceWorkshop.RapidsRivers
         {
             return _recognized_keys[key];
         }
+
+        public void Put(string key, object value)
+        {
+            _recognized_keys[key] = value;
+        }
     }
 }
