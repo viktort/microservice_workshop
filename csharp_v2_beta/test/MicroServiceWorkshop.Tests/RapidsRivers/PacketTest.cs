@@ -120,5 +120,31 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
             _packet.Put(SampleFloatKey, -0.75);
             Assert.AreEqual(-0.75, _packet.Get(SampleFloatKey));
         }
+
+        [Test]
+        public void NewKeyCreatedWithValue()
+        {
+            Assert.False(_packet.HasKey("new_key"));
+            _packet.Put("new_key", "new_value");
+            Assert.AreEqual("new_value", _packet.Get("new_key"));
+        }
+
+        [Test]
+        public void ForbiddenKeyMissing()
+        {
+            _packet.Forbid("forbidden_key_1", "forbidden_key_2");
+            Assert.False(_problems.HasErrors());
+            Assert.That(_problems.ToString(), Does.Contain("forbidden_key_1"));
+            Assert.That(_problems.ToString(), Does.Contain("forbidden_key_2"));
+        }
+
+        [Test]
+        public void ForbiddenKeyCanBeSet()
+        {
+            _packet.Forbid("forbidden_key");
+            Assert.False(_problems.HasErrors());
+            _packet.Put("forbidden_key", 42);
+            Assert.AreEqual(42, _packet.Get("forbidden_key"));
+        }
     }
 }

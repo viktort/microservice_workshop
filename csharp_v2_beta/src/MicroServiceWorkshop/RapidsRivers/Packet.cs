@@ -44,9 +44,31 @@ namespace MicroServiceWorkshop.RapidsRivers
             }
         }
 
-        private bool HasKey(string key)
+        public void Forbid(params string[] forbiddenJsonKeys)
+        {
+            foreach (string key in forbiddenJsonKeys)
+            {
+                if (IsKeyEmpty(key))
+                {
+                    _problems.Information("Forbidden key '" + key + "' does not exist");
+                }
+                else _problems.Error("Forbidden key '" + key + "' actually exists");
+            }
+        }
+
+        public bool HasKey(string key)
         {
             return _jsonHash[key] != null;
+        }
+
+        private bool IsKeyEmpty(string key)
+        {
+            JToken token = _jsonHash[key];
+            return (token == null) ||
+                (token.Type == JTokenType.Array && !token.HasValues) ||
+                (token.Type == JTokenType.Object && !token.HasValues) ||
+                (token.Type == JTokenType.String && token.ToString() == String.Empty) ||
+                (token.Type == JTokenType.Null);
         }
 
         private void AddAccessor(string key)
