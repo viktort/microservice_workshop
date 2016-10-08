@@ -56,7 +56,7 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
         public void InvalidJson()
         {
             PacketProblems problems = new PacketProblems(MissingComma);
-            Packet p = new Packet(MissingComma, problems);
+            Packet ignore = new Packet(MissingComma, problems);
             Assert.True(problems.HasErrors());
             Assert.That(problems.ToString(), Does.Contain("Invalid JSON"));
         }
@@ -93,6 +93,14 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
             Assert.AreEqual("car_rental_offer", _packet.Get(NeedKey));
             Assert.AreEqual(456, _packet.Get(UserIdKey));
             Assert.AreEqual(1.25, _packet.Get(SampleFloatKey));
+        }
+
+        [Test]
+        public void MissingRequiredKey()
+        {
+            _packet.Require("missing_key");
+            Assert.True(_problems.HasErrors());
+            Assert.That(_problems.ToString(), Does.Contain("missing_key"));
         }
     }
 }

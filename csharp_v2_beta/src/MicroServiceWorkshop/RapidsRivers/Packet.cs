@@ -46,7 +46,7 @@ namespace MicroServiceWorkshop.RapidsRivers
 
         private bool HasKey(string key)
         {
-            return _jsonHash[key].Type != JTokenType.Null;
+            return _jsonHash[key] != null;
         }
 
         private void AddAccessor(string key)
