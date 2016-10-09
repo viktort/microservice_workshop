@@ -49,34 +49,24 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
             _rapidsConnection.Register(_river);
         }
 
-        private class ValidJson : TestPacketListener
-        {
-            public override void Packet(RapidsConnection connections, JObject jsonPacket, PacketProblems problems)
-            {
-                Assert.False(problems.HasErrors());
-            }
-        }
-
         [Test]
-        public void ValidJsonTest()
+        public void ValidJson()
         {
-            _river.Register(new ValidJson());
+            _river.Register(new TestPacketListener((RapidsConnection connection, JObject jsonPacket, PacketProblems warnings) =>
+            {
+                Assert.False(warnings.HasErrors());
+            }));
             _rapidsConnection.Process(SolutionString);
         }
 
-        private class InvalidJson : TestPacketListener
+        [Test]
+        public void InvalidJson()
         {
-            public override void OnError(RapidsConnection connections, PacketProblems problems)
+            _river.Register(new TestPacketListener((RapidsConnection _rapidsConnection, PacketProblems problems) =>
             {
                 Assert.True(problems.HasErrors());
-                Assert.That(problems.ToString(), Does.Contain("Invalid JSON"));
-            }
-        }
-
-        [Test]
-        public void InvalidJsonTest()
-        {
-            _river.Register(new InvalidJson());
+                Assert.That(problems.ToString(), Does.Contain("Invalid JSON format"));
+            }));
             _rapidsConnection.Process(MissingComma);
         }
 
@@ -89,17 +79,44 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
             }
         }
 
-        private abstract class TestPacketListener : River.IPacketListener
+        delegate void Packet(RapidsConnection connection, JObject jsonPacket, PacketProblems warnings);
+
+        delegate void OnError(RapidsConnection connection, PacketProblems errors);
+
+        private class TestPacketListener : River.IPacketListener
         {
+            private readonly Packet _successDelegate;
+            private readonly OnError _failureDelegate;
+
+            public TestPacketListener(Packet successDelegate) : this(successDelegate, new OnError(UnexpectedFailure)) { }
+            public TestPacketListener(OnError failureDelegate) : this(new Packet(UnexpectedSuccess), failureDelegate) { }
+
+            private TestPacketListener(Packet successDelegate, OnError failureDelegate)
+            {
+                _successDelegate = successDelegate;
+                _failureDelegate = failureDelegate;
+            }
+
             public virtual void Packet(RapidsConnection connection, JObject jsonPacket, PacketProblems warnings)
             {
-                Assert.Fail("Unexpected success parsing JSON packet. Packet is:\n"
+                _successDelegate( connection, jsonPacket, warnings);
+            }
+
+            public virtual void OnError(RapidsConnection connection, PacketProblems errors)
+            {
+                _failureDelegate(connection, errors);
+            }
+
+            private static void UnexpectedSuccess(RapidsConnection connection, JObject jsonPacket,
+                PacketProblems warnings)
+            {
+                Assert.Fail("Unexpected successDelegate parsing JSON packet. Packet is:\n"
                             + jsonPacket.ToString()
                             + "\nWarnings discovered were:\n"
                             + warnings.ToString());
             }
 
-            public virtual void OnError(RapidsConnection connection, PacketProblems errors)
+            private static void UnexpectedFailure(RapidsConnection connection, PacketProblems errors)
             {
                 Assert.Fail("Unexpected JSON packet problem(s):\n" + errors.ToString());
             }
