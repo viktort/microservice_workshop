@@ -30,7 +30,7 @@ namespace MicroServiceWorkshop.RapidsRivers
             }
             catch (Exception e)
             {
-                _problems.SevereError("Unknown failure. Message is: " + e.Message);
+                _problems.SevereError("Unknown failure. HandleMessage is: " + e.Message);
             }
         }
 

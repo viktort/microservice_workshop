@@ -20,7 +20,7 @@ namespace MicroServiceWorkshop.RapidsRivers
 
         public interface IMessageListener
         {
-            void Message(RapidsConnection sendPort, string message);
+            void HandleMessage(RapidsConnection sendPort, string message);
         }
     }
 }

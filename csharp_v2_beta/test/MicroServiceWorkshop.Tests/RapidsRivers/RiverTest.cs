@@ -3,6 +3,7 @@
  * May be used freely except for training; license required for training.
  */
 
+using System.Runtime.CompilerServices;
 using MicroServiceWorkshop.RapidsRivers;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -36,9 +37,7 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
         private const string EmptyArrayKey = "contributing_services";
         private const string InterestingKey = "frequent_renter";
         private const string SolutionsKey = "solutions";
-
-        private PacketProblems _problems;
-        private JObject _jsonPacket;
+        
         private TestRapidsConnection _rapidsConnection;
         private River _river;
 
@@ -50,18 +49,49 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
             _rapidsConnection.Register(_river);
         }
 
+        private class ValidJson : TestPacketListener
+        {
+            public override void Packet(RapidsConnection connections, JObject jsonPacket, PacketProblems problems)
+            {
+                Assert.False(problems.HasErrors());
+            }
+        }
+
+        [Test]
+        public void ValidJsonTest()
+        {
+            _river.Register(new ValidJson());
+            _rapidsConnection.Process(SolutionString);
+        }
+
+        private class InvalidJson : TestPacketListener
+        {
+            public override void OnError(RapidsConnection connections, PacketProblems problems)
+            {
+                Assert.True(problems.HasErrors());
+                Assert.That(problems.ToString(), Does.Contain("Invalid JSON"));
+            }
+        }
+
+        [Test]
+        public void InvalidJsonTest()
+        {
+            _river.Register(new InvalidJson());
+            _rapidsConnection.Process(MissingComma);
+        }
+
         private class TestRapidsConnection : RapidsConnection
         {
             public override void Publish(string message) { }  // Ignore for this test
-            void Process(string message)
+            internal void Process(string message)
             {
-                foreach (IMessageListener l in Listeners) l.Message(this, message);
+                foreach (IMessageListener l in Listeners) l.HandleMessage(this, message);
             }
         }
 
         private abstract class TestPacketListener : River.IPacketListener
         {
-            public void Packet(RapidsConnection connection, JObject jsonPacket, PacketProblems warnings)
+            public virtual void Packet(RapidsConnection connection, JObject jsonPacket, PacketProblems warnings)
             {
                 Assert.Fail("Unexpected success parsing JSON packet. Packet is:\n"
                             + jsonPacket.ToString()
@@ -69,7 +99,7 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
                             + warnings.ToString());
             }
 
-            public void OnError(RapidsConnection connection, PacketProblems errors)
+            public virtual void OnError(RapidsConnection connection, PacketProblems errors)
             {
                 Assert.Fail("Unexpected JSON packet problem(s):\n" + errors.ToString());
             }

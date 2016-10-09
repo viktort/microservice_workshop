@@ -27,7 +27,7 @@ namespace MicroServiceWorkshop.RapidsRivers
             _listeners.Add(listener);
         }
         
-        public void Message(RapidsConnection sendPort, string message)
+        public void HandleMessage(RapidsConnection sendPort, string message)
         {
             PacketProblems problems = new PacketProblems(message);
             JObject jsonPacket = JsonPacket(message, problems);
@@ -55,7 +55,7 @@ namespace MicroServiceWorkshop.RapidsRivers
             }
             catch (Exception e)
             {
-                problems.SevereError("Unknown failure. Message is: " + e.Message);
+                problems.SevereError("Unknown failure. HandleMessage is: " + e.Message);
             }
             return result;
         }
