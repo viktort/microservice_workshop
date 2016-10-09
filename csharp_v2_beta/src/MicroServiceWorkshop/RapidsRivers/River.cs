@@ -10,7 +10,7 @@ using Newtonsoft.Json.Linq;
 
 namespace MicroServiceWorkshop.RapidsRivers
 {
-    public abstract class River : RapidsConnection.IMessageListener
+    public class River : RapidsConnection.IMessageListener
     {
         private readonly RapidsConnection _rapidsConnection;
         private readonly List<IPacketListener> _listeners = new List<IPacketListener>();
