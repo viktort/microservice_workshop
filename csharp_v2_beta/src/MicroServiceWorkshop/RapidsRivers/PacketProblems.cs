@@ -23,9 +23,14 @@ namespace MicroServiceWorkshop.RapidsRivers
             _originalJson = originalJson;
         }
 
+        public bool AreSevere()
+        {
+            return _severeErrors.Any();
+        }
+
         public bool HasErrors()
         {
-            return _errors.Any() || _severeErrors.Any();
+            return AreSevere() ||_errors.Any();
         }
 
         private bool HasMessages()

@@ -48,6 +48,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RapidsRivers\Packet.cs" />
     <Compile Include="RapidsRivers\PacketProblems.cs" />
+    <Compile Include="RapidsRivers\Rapids Connection.cs" />
+    <Compile Include="RapidsRivers\River.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
