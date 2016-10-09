@@ -112,7 +112,7 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
             {
                 Assert.Fail("Unexpected successDelegate parsing JSON packet. Packet is:\n"
                             + jsonPacket.ToString()
-                            + "\nWarnings discovered were:\n"
+                            + "\nConclusions from parsing/validation are:\n"
                             + warnings.ToString());
             }
 
