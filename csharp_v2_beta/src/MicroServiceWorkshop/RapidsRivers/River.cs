@@ -34,7 +34,7 @@ namespace MicroServiceWorkshop.RapidsRivers
             foreach (IValidation v in _validations)
             {
                 if (problems.AreSevere()) break;
-                v.Validate(jsonPacket);
+                v.Validate(jsonPacket, problems);
             }
             if (problems.HasErrors())
                 OnError(sendPort, problems);
@@ -70,6 +70,12 @@ namespace MicroServiceWorkshop.RapidsRivers
             foreach (IPacketListener l in _listeners) l.Packet(sendPort, jsonPacket, warnings);
         }
 
+        public River Require(params string[] jsonKeyStrings)
+        {
+            _validations.Add(new RequiredKeys(jsonKeyStrings));
+            return this;
+        }
+
         public interface IPacketListener
         {
             void Packet(RapidsConnection connection, JObject jsonPacket, PacketProblems warnings);
@@ -78,7 +84,24 @@ namespace MicroServiceWorkshop.RapidsRivers
 
         private interface IValidation
         {
-            void Validate(JObject jsonPacket);
+            void Validate(JObject jsonPacket, PacketProblems problems);
+        }
+
+        private class RequiredKeys : IValidation
+        {
+            private readonly string[] _requiredKeys;
+
+            internal RequiredKeys(string[] requiredKeys)
+            {
+                _requiredKeys = requiredKeys;
+            }
+
+            public void Validate(JObject jsonPacket, PacketProblems problems)
+            {
+                foreach (string key in _requiredKeys)
+                    if (jsonPacket[key] == null)
+                        problems.Error("Missing required key '" + key + "'");
+            }
         }
     }
 }

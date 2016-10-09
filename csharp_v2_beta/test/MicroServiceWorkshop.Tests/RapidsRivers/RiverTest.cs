@@ -62,12 +62,74 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
         [Test]
         public void InvalidJson()
         {
-            _river.Register(new TestPacketListener((RapidsConnection _rapidsConnection, PacketProblems problems) =>
+            _river.Register(new TestPacketListener((RapidsConnection connection, PacketProblems problems) =>
             {
                 Assert.True(problems.HasErrors());
                 Assert.That(problems.ToString(), Does.Contain("Invalid JSON format"));
             }));
             _rapidsConnection.Process(MissingComma);
+        }
+
+        [Test]
+        public void RequiredStringKeyExists()
+        {
+            _river.Require(NeedKey);
+            _river.Register(new TestPacketListener((RapidsConnection connection, JObject jsonPacket, PacketProblems warnings) =>
+            {
+                Assert.False(warnings.HasErrors());
+                Assert.AreEqual("car_rental_offer", (string)jsonPacket[NeedKey]);
+            }));
+            _rapidsConnection.Process(SolutionString);
+        }
+
+        [Test]
+        public void RequiredIntegerKeyExists()
+        {
+            _river.Require(UserIdKey);
+            _river.Register(new TestPacketListener((RapidsConnection connection, JObject jsonPacket, PacketProblems warnings) =>
+            {
+                Assert.False(warnings.HasErrors());
+                Assert.AreEqual(456, (int)jsonPacket[UserIdKey]);
+            }));
+            _rapidsConnection.Process(SolutionString);
+        }
+
+        [Test]
+        public void RequiredFloatKeyExists()
+        {
+            _river.Require(SampleFloatKey);
+            _river.Register(new TestPacketListener((RapidsConnection connection, JObject jsonPacket, PacketProblems warnings) =>
+            {
+                Assert.False(warnings.HasErrors());
+                Assert.AreEqual(1.25, (float)jsonPacket[SampleFloatKey]);
+            }));
+            _rapidsConnection.Process(SolutionString);
+        }
+
+        [Test]
+        public void RequiredMultipleKeysExist()
+        {
+            _river.Require(NeedKey, UserIdKey, SampleFloatKey);
+            _river.Register(new TestPacketListener((RapidsConnection connection, JObject jsonPacket, PacketProblems warnings) =>
+            {
+                Assert.False(warnings.HasErrors());
+                Assert.AreEqual("car_rental_offer", (string)jsonPacket[NeedKey]);
+                Assert.AreEqual(456, (int)jsonPacket[UserIdKey]);
+                Assert.AreEqual(1.25, (float)jsonPacket[SampleFloatKey]);
+            }));
+            _rapidsConnection.Process(SolutionString);
+        }
+
+        [Test]
+        public void MissingRequiredKeyDetected()
+        {
+            _river.Require("missing_key");
+            _river.Register(new TestPacketListener((RapidsConnection connection, PacketProblems problems) =>
+            {
+                Assert.True(problems.HasErrors());
+                Assert.That(problems.ToString(), Does.Contain("missing_key"));
+            }));
+            _rapidsConnection.Process(SolutionString);
         }
 
         private class TestRapidsConnection : RapidsConnection
