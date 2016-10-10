@@ -26,8 +26,14 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
             "\"system.read_count\":2," +
             "\"contributing_services\":[]}";
 
+        private const string SimplePacketString =
+            "{\"frequent_renter\":\"silver\"}";
+
         private const string MissingComma =
             "{\"frequent_renter\":\"\" \"read_count\":2}";
+
+        private const string InvalidReadCountValue =
+            "{\"frequent_renter\":\"\",\"read_count\":\"erroneous_value\"}";
 
         private const string NeedKey = "need";
         private const string UserIdKey = "user_id";
@@ -36,7 +42,8 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
         private const string EmptyArrayKey = "contributing_services";
         private const string InterestingKey = "frequent_renter";
         private const string SolutionsKey = "solutions";
-        
+        private const string ReadCountKey = "system.read_count";
+
         private TestRapidsConnection _rapidsConnection;
         private River _river;
 
@@ -180,6 +187,39 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
             _rapidsConnection.Process(SolutionString);
         }
 
+        [Test]
+        public void ReadCountIncremented()
+        {
+            _river.Register(new TestRiver((connection, jsonPacket, warnings) =>
+            {
+                Assert.False(warnings.HasErrors());
+                Assert.AreEqual(3, (int)jsonPacket[ReadCountKey]);
+            }));
+            _rapidsConnection.Process(SolutionString);
+        }
+
+        [Test]
+        public void ReadCountInjectedIfMissing()
+        {
+            _river.Register(new TestRiver((connection, jsonPacket, warnings) =>
+            {
+                Assert.False(warnings.HasErrors());
+                Assert.AreEqual(1, (int)jsonPacket[ReadCountKey]);
+            }));
+            _rapidsConnection.Process(SimplePacketString);
+        }
+
+        [Test]
+        public void ReadCountResetIfInvalid()
+        {
+            _river.Register(new TestRiver((connection, jsonPacket, warnings) =>
+            {
+                Assert.False(warnings.HasErrors());
+                Assert.AreEqual(1, (int)jsonPacket[ReadCountKey]);
+            }));
+            _rapidsConnection.Process(InvalidReadCountValue);
+        }
+
         // Understands a mock RapidsConnection to allow tests to send messages
         private class TestRapidsConnection : RapidsConnection
         {
@@ -209,12 +249,12 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
                 _failureDelegate = failureDelegate;
             }
 
-            public void Packet(RapidsConnection connection, JObject jsonPacket, PacketProblems warnings)
+            public void ProcessPacket(RapidsConnection connection, JObject jsonPacket, PacketProblems warnings)
             {
-                _successDelegate( connection, jsonPacket, warnings);
+                _successDelegate(connection, jsonPacket, warnings);
             }
 
-            public void OnError(RapidsConnection connection, PacketProblems errors)
+            public void ProcessError(RapidsConnection connection, PacketProblems errors)
             {
                 _failureDelegate(connection, errors);
             }
@@ -222,7 +262,7 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
             private static void UnexpectedSuccess(RapidsConnection connection, JObject jsonPacket,
                 PacketProblems warnings)
             {
-                Assert.Fail("Unexpected successDelegate parsing JSON packet. Packet is:\n"
+                Assert.Fail("Unexpected success parsing JSON packet. Packet is:\n"
                             + jsonPacket
                             + "\nConclusions from parsing/validation are:\n"
                             + warnings);
@@ -230,7 +270,7 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
 
             private static void UnexpectedFailure(RapidsConnection connection, PacketProblems errors)
             {
-                Assert.Fail("Unexpected JSON packet problem(s):\n" + errors.ToString());
+                Assert.Fail("Unexpected JSON packet problem(s):\n" + errors);
             }
         }
     }
