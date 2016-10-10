@@ -12,14 +12,12 @@ namespace MicroServiceWorkshop.RapidsRivers
 {
     public class River : RapidsConnection.IMessageListener
     {
-        private readonly RapidsConnection _rapidsConnection;
         private readonly List<IPacketListener> _listeners = new List<IPacketListener>();
         private readonly List<IValidation> _validations = new List<IValidation>();
 
         public River(RapidsConnection rapidsConnection)
         {
-            _rapidsConnection = rapidsConnection;
-            _rapidsConnection.Register(this);
+            rapidsConnection.Register(this);
         }
 
         public void Register(IPacketListener listener)
@@ -76,6 +74,12 @@ namespace MicroServiceWorkshop.RapidsRivers
             return this;
         }
 
+        public River Forbid(params string[] jsonKeyStrings)
+        {
+            _validations.Add(new ForbiddenKeys(jsonKeyStrings));
+            return this;
+        }
+
         public interface IPacketListener
         {
             void Packet(RapidsConnection connection, JObject jsonPacket, PacketProblems warnings);
@@ -101,6 +105,32 @@ namespace MicroServiceWorkshop.RapidsRivers
                 foreach (string key in _requiredKeys)
                     if (jsonPacket[key] == null)
                         problems.Error("Missing required key '" + key + "'");
+            }
+        }
+
+        private class ForbiddenKeys : IValidation
+        {
+            private readonly string[] _forbiddenKeys;
+
+            internal ForbiddenKeys(string[] forbiddenKeys)
+            {
+                _forbiddenKeys = forbiddenKeys;
+            }
+
+            public void Validate(JObject jsonPacket, PacketProblems problems)
+            {
+                foreach (string key in _forbiddenKeys)
+                {
+                    JToken token = jsonPacket[key];
+                    // Tests as suggested by NewtonSoft recommendations
+                    if ((token == null) ||
+                        (token.Type == JTokenType.Array && !token.HasValues) ||
+                        (token.Type == JTokenType.Object && !token.HasValues) ||
+                        (token.Type == JTokenType.String && token.ToString() == String.Empty) ||
+                        (token.Type == JTokenType.Null))
+                        problems.Information("Forbidden key '" + key + "' does not exist");
+                    else problems.Error("Forbidden key '" + key + "' actually exists");
+                }
             }
         }
     }

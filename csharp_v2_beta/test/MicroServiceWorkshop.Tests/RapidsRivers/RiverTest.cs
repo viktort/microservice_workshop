@@ -2,8 +2,7 @@
  * Copyright (c) 2016 by Fred George
  * May be used freely except for training; license required for training.
  */
-
-using System.Runtime.CompilerServices;
+ 
 using MicroServiceWorkshop.RapidsRivers;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -52,7 +51,7 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
         [Test]
         public void ValidJson()
         {
-            _river.Register(new TestPacketListener((RapidsConnection connection, JObject jsonPacket, PacketProblems warnings) =>
+            _river.Register(new TestRiver((connection, jsonPacket, warnings) =>
             {
                 Assert.False(warnings.HasErrors());
             }));
@@ -62,7 +61,7 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
         [Test]
         public void InvalidJson()
         {
-            _river.Register(new TestPacketListener((RapidsConnection connection, PacketProblems problems) =>
+            _river.Register(new TestRiver((connection, problems) =>
             {
                 Assert.True(problems.HasErrors());
                 Assert.That(problems.ToString(), Does.Contain("Invalid JSON format"));
@@ -74,7 +73,7 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
         public void RequiredStringKeyExists()
         {
             _river.Require(NeedKey);
-            _river.Register(new TestPacketListener((RapidsConnection connection, JObject jsonPacket, PacketProblems warnings) =>
+            _river.Register(new TestRiver((connection, jsonPacket, warnings) =>
             {
                 Assert.False(warnings.HasErrors());
                 Assert.AreEqual("car_rental_offer", (string)jsonPacket[NeedKey]);
@@ -86,7 +85,7 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
         public void RequiredIntegerKeyExists()
         {
             _river.Require(UserIdKey);
-            _river.Register(new TestPacketListener((RapidsConnection connection, JObject jsonPacket, PacketProblems warnings) =>
+            _river.Register(new TestRiver((connection, jsonPacket, warnings) =>
             {
                 Assert.False(warnings.HasErrors());
                 Assert.AreEqual(456, (int)jsonPacket[UserIdKey]);
@@ -98,7 +97,7 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
         public void RequiredFloatKeyExists()
         {
             _river.Require(SampleFloatKey);
-            _river.Register(new TestPacketListener((RapidsConnection connection, JObject jsonPacket, PacketProblems warnings) =>
+            _river.Register(new TestRiver((connection, jsonPacket, warnings) =>
             {
                 Assert.False(warnings.HasErrors());
                 Assert.AreEqual(1.25, (float)jsonPacket[SampleFloatKey]);
@@ -110,7 +109,7 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
         public void RequiredMultipleKeysExist()
         {
             _river.Require(NeedKey, UserIdKey, SampleFloatKey);
-            _river.Register(new TestPacketListener((RapidsConnection connection, JObject jsonPacket, PacketProblems warnings) =>
+            _river.Register(new TestRiver((connection, jsonPacket, warnings) =>
             {
                 Assert.False(warnings.HasErrors());
                 Assert.AreEqual("car_rental_offer", (string)jsonPacket[NeedKey]);
@@ -124,7 +123,7 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
         public void MissingRequiredKeyDetected()
         {
             _river.Require("missing_key");
-            _river.Register(new TestPacketListener((RapidsConnection connection, PacketProblems problems) =>
+            _river.Register(new TestRiver((connection, problems) =>
             {
                 Assert.True(problems.HasErrors());
                 Assert.That(problems.ToString(), Does.Contain("missing_key"));
@@ -132,6 +131,44 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
             _rapidsConnection.Process(SolutionString);
         }
 
+        [Test]
+        public void ForbiddenKeyMissing()
+        {
+            _river.Forbid("forbidden_key_1", "forbidden_key_2");
+            _river.Register(new TestRiver((connection, jsonPacket, warnings) =>
+            {
+                Assert.False(warnings.HasErrors());
+                Assert.That(warnings.ToString(), Does.Contain("forbidden_key_1"));
+                Assert.That(warnings.ToString(), Does.Contain("forbidden_key_2"));
+            }));
+            _rapidsConnection.Process(SolutionString);
+        }
+
+        [Test]
+        public void EmptyStringPassesForbiddenValidation()
+        {
+            _river.Forbid(InterestingKey);
+            _river.Register(new TestRiver((connection, jsonPacket, warnings) =>
+            {
+                Assert.False(warnings.HasErrors());
+                Assert.That(warnings.ToString(), Does.Contain(InterestingKey));
+            }));
+            _rapidsConnection.Process(SolutionString);
+        }
+
+        [Test]
+        public void EmptyArrayPassesForbiddenValidation()
+        {
+            _river.Forbid(EmptyArrayKey);
+            _river.Register(new TestRiver((connection, jsonPacket, warnings) =>
+            {
+                Assert.False(warnings.HasErrors());
+                Assert.That(warnings.ToString(), Does.Contain(EmptyArrayKey));
+            }));
+            _rapidsConnection.Process(SolutionString);
+        }
+
+        // Understands a mock RapidsConnection to allow tests to send messages
         private class TestRapidsConnection : RapidsConnection
         {
             public override void Publish(string message) { }  // Ignore for this test
@@ -141,30 +178,31 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
             }
         }
 
+        // Understands a mock River that invokes different delegates on success or failure
         delegate void Packet(RapidsConnection connection, JObject jsonPacket, PacketProblems warnings);
 
         delegate void OnError(RapidsConnection connection, PacketProblems errors);
 
-        private class TestPacketListener : River.IPacketListener
+        private class TestRiver : River.IPacketListener
         {
             private readonly Packet _successDelegate;
             private readonly OnError _failureDelegate;
 
-            public TestPacketListener(Packet successDelegate) : this(successDelegate, new OnError(UnexpectedFailure)) { }
-            public TestPacketListener(OnError failureDelegate) : this(new Packet(UnexpectedSuccess), failureDelegate) { }
+            public TestRiver(Packet successDelegate) : this(successDelegate, UnexpectedFailure) { }
+            public TestRiver(OnError failureDelegate) : this(UnexpectedSuccess, failureDelegate) { }
 
-            private TestPacketListener(Packet successDelegate, OnError failureDelegate)
+            private TestRiver(Packet successDelegate, OnError failureDelegate)
             {
                 _successDelegate = successDelegate;
                 _failureDelegate = failureDelegate;
             }
 
-            public virtual void Packet(RapidsConnection connection, JObject jsonPacket, PacketProblems warnings)
+            public void Packet(RapidsConnection connection, JObject jsonPacket, PacketProblems warnings)
             {
                 _successDelegate( connection, jsonPacket, warnings);
             }
 
-            public virtual void OnError(RapidsConnection connection, PacketProblems errors)
+            public void OnError(RapidsConnection connection, PacketProblems errors)
             {
                 _failureDelegate(connection, errors);
             }
@@ -173,9 +211,9 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
                 PacketProblems warnings)
             {
                 Assert.Fail("Unexpected successDelegate parsing JSON packet. Packet is:\n"
-                            + jsonPacket.ToString()
+                            + jsonPacket
                             + "\nConclusions from parsing/validation are:\n"
-                            + warnings.ToString());
+                            + warnings);
             }
 
             private static void UnexpectedFailure(RapidsConnection connection, PacketProblems errors)
