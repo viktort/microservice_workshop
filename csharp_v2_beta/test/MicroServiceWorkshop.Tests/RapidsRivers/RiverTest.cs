@@ -168,6 +168,18 @@ namespace MicroServiceWorkshop.Tests.RapidsRivers
             _rapidsConnection.Process(SolutionString);
         }
 
+        [Test]
+        public void ForbiddenFieldRejected()
+        {
+            _river.Forbid(NeedKey);
+            _river.Register(new TestRiver((connection, problems) =>
+            {
+                Assert.True(problems.HasErrors());
+                Assert.That(problems.ToString(), Does.Contain(NeedKey));
+            }));
+            _rapidsConnection.Process(SolutionString);
+        }
+
         // Understands a mock RapidsConnection to allow tests to send messages
         private class TestRapidsConnection : RapidsConnection
         {

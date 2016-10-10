@@ -21,6 +21,7 @@ public class Monitor implements River.PacketListener {
         final RapidsConnection rapidsConnection = new RabbitMqRapids("monitor_all_java", host, port);
         final River river = new River(rapidsConnection);
         river.register(new Monitor());
+        // See RiverTest for various functions River supports to aid in filtering
     }
 
     @Override
