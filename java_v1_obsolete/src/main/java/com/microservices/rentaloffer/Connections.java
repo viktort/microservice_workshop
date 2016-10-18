@@ -13,7 +13,8 @@ public class Connections implements AutoCloseable {
     protected static final Logger logger = LoggerFactory.getLogger(Connection.class);
     protected final Channel channel;
     protected final QueueingConsumer consumer;
-    protected final String amqpUrl;
+    protected final String host;
+    protected final String portNumber;
     protected final String queue = "";
     protected final String exchange = "rapids";
     protected final String exchangeType = "fanout";
@@ -21,8 +22,9 @@ public class Connections implements AutoCloseable {
     protected final Connection connection;
     protected AMQP.BasicProperties basicProperties;
 
-    public Connections(String host, String busName) {
-        this.amqpUrl = amqpUrl(host, busName);
+    public Connections(String host, String portNumber) {
+        this.host = host;
+        this.portNumber = portNumber;
         ConnectionFactory factory = factory();
         this.connection = connection(factory);
         this.basicProperties = new AMQP.BasicProperties().builder().build();
@@ -34,7 +36,7 @@ public class Connections implements AutoCloseable {
     }
 
     public void deliveryLoop(MessageHandler handler) {
-        logger.info(String.format(" [*] Waiting for solutions on the %s bus... To exit press CTRL+C", amqpUrl));
+        logger.info(String.format(" [*] Waiting for solutions on the host %s at port %s ... To exit press CTRL+C", host, portNumber));
         while (true) {
             final QueueingConsumer.Delivery delivery = delivery(consumer);
             if (delivery != null) {
@@ -69,10 +71,6 @@ public class Connections implements AutoCloseable {
     protected Map<String, Object> headers(QueueingConsumer.Delivery delivery) {
         AMQP.BasicProperties properties = delivery.getProperties();
         return properties.getHeaders();
-    }
-
-    protected String amqpUrl(String host, String busName) {
-        return String.format("amqp://%s:%s@%s/%s", busName, busName, host, busName);
     }
 
     protected String message(QueueingConsumer.Delivery delivery) {
@@ -129,7 +127,7 @@ public class Connections implements AutoCloseable {
 
     protected String queue(Channel channel) {
         try {
-            channel.queueDeclare(queue, true, false, false, new HashMap<String, Object>());
+            channel.queueDeclare(queue, false, true, true, new HashMap<String, Object>());
             return queue;
         } catch (IOException e) {
             throw new RuntimeException("Could not declare queue:", e);
@@ -163,11 +161,12 @@ public class Connections implements AutoCloseable {
     protected ConnectionFactory factory() {
         try {
             ConnectionFactory factory = new ConnectionFactory();
-            factory.setUri(amqpUrl);
-            logger.info(amqpUrl);
+            factory.setHost(host);
+            factory.setPort(Integer.getInteger(portNumber));
+            logger.info("Host: " + host + " Port: " + portNumber);
             return factory;
         } catch (Exception ex) {
-            String message = String.format("Failed to initialize ConnectionFactory with %s.", amqpUrl);
+            String message = String.format("Failed to initialize ConnectionFactory with host %s and port %s.", host, portNumber);
             throw new RuntimeException(message, ex);
         }
     }
