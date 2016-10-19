@@ -74,9 +74,6 @@ public class RabbitMqRapids extends RapidsConnection implements AutoCloseable {
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException("IOException on creating Connection", e);
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-            throw new RuntimeException("TimeoutException on creating Connection", e);
         }
     }
 
@@ -152,9 +149,6 @@ public class RabbitMqRapids extends RapidsConnection implements AutoCloseable {
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException("IOException on close", e);
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-            throw new RuntimeException("TimeoutException on close", e);
         }
     }
 
