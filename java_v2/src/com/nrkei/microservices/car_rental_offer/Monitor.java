@@ -18,10 +18,14 @@ public class Monitor implements River.PacketListener {
         String host = args[0];
         String port = args[1];
 
-        final RapidsConnection rapidsConnection = new RabbitMqRapids("monitor_all_java", host, port);
+        final RapidsConnection rapidsConnection = new RabbitMqRapids("monitor_in_java", host, port);
         final River river = new River(rapidsConnection);
-        river.register(new Monitor());
-        // See RiverTest for various functions River supports to aid in filtering
+        // See RiverTest for various functions River supports to aid in filtering, like:
+        //river.requireValue("key", "value");  // Reject packet unless it has key:value pair
+        //river.require("key1", "key2");       // Reject packet unless it has key1 and key2
+        //river.forbid("key1", "key2");        // Reject packet if it does have key1 or key2
+        //river.interestedIn("key1", "key2");  // Allows key1 and key2 to be queried and set in a packet
+        river.register(new Monitor());         // Hook up to the river to start receiving traffic
     }
 
     @Override
