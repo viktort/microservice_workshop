@@ -1,8 +1,4 @@
-﻿/* 
- * Copyright (c) 2016 by Fred George
- * May be used freely except for training; license required for training.
- */
-
+﻿
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -22,7 +18,7 @@ namespace MicroServiceWorkshop.RapidsRivers.RabbitMQ
         public RabbitMqRapids(string serviceName, string host, string port)
         {
             _queueName = serviceName + "_" + Guid.NewGuid();
-            _factory = new ConnectionFactory {HostName = host, Port = int.Parse(port)};
+            _factory = new ConnectionFactory { HostName = host, Port = int.Parse(port) };
         }
 
         public override void Register(IMessageListener listener)
