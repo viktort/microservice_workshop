@@ -48,3 +48,5 @@ The Docker instances of the instructor's machine have remapped the ports for eac
 instance of RabbitMQ to:
 - 56xx (xx = 73-85) for RabbitMQ access, and
 - 156xx (xx = 73-85) for management console
+
+For the admin console, RabbitMQ uses _guest_ for the user id and password.
