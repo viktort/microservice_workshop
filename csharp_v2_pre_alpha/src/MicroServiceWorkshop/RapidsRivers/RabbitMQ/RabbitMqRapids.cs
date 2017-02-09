@@ -6,10 +6,10 @@ using RabbitMQ.Client;
 
 namespace MicroServiceWorkshop.RapidsRivers.RabbitMQ
 {
-    internal class RabbitMqRapids : RapidsConnection
+    public class RabbitMqRapids : RapidsConnection
     {
-        private const string _exchangeName = "rapids";
-        private const string _rabbitMqPubSub = "fanout";
+        private const string ExchangeName = "rapids";
+        private const string RabbitMqPubSub = "fanout";
         private readonly ConnectionFactory _factory;
         private IConnection _connection;
         private IModel _channel;
@@ -24,6 +24,9 @@ namespace MicroServiceWorkshop.RapidsRivers.RabbitMQ
         public override void Register(IMessageListener listener)
         {
             if (_channel == null) Connect();
+            ConfigureQueue();
+            Console.WriteLine(" [*] Waiting for messages. To exit press CTRL+C");
+            //consumeMessages(consumer(channel));
             base.Register(listener);
         }
 
@@ -31,7 +34,7 @@ namespace MicroServiceWorkshop.RapidsRivers.RabbitMQ
         {
             if (_channel == null) Connect();
             var body = Encoding.UTF8.GetBytes(message);
-            _channel.BasicPublish(exchange: _exchangeName, routingKey: "", basicProperties: null, body: body);
+            _channel.BasicPublish(exchange: ExchangeName, routingKey: "", basicProperties: null, body: body);
         }
 
         private void Connect()
@@ -48,8 +51,14 @@ namespace MicroServiceWorkshop.RapidsRivers.RabbitMQ
 
         private void DeclareExchange()
         {
-            _channel.ExchangeDeclare(_exchangeName, _rabbitMqPubSub, true, true,
+            _channel.ExchangeDeclare(ExchangeName, RabbitMqPubSub, true, true,
                 new Dictionary<string, object>());
+        }
+
+        private void ConfigureQueue()
+        {
+            _channel.QueueDeclare(this._queueName, false, true, true, null);
+            _channel.QueueBind(this._queueName, "rapids", "");
         }
     }
 }

@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>MicroServiceWorkshop</RootNamespace>
     <AssemblyName>MicroServiceWorkshop</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -52,7 +52,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RapidsRivers\PacketProblems.cs" />
     <Compile Include="RapidsRivers\RabbitMQ\RabbitMqRapids.cs" />
-    <Compile Include="RapidsRivers\Rapids Connection.cs" />
+    <Compile Include="RapidsRivers\RapidsConnection.cs" />
     <Compile Include="RapidsRivers\River.cs" />
   </ItemGroup>
   <ItemGroup>
