@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
 namespace MicroServiceWorkshop.RapidsRivers.RabbitMQ
 {
@@ -26,7 +27,7 @@ namespace MicroServiceWorkshop.RapidsRivers.RabbitMQ
             if (_channel == null) Connect();
             ConfigureQueue();
             Console.WriteLine(" [*] Waiting for messages. To exit press CTRL+C");
-            //consumeMessages(consumer(channel));
+            ConsumeMessages();
             base.Register(listener);
         }
 
@@ -59,6 +60,22 @@ namespace MicroServiceWorkshop.RapidsRivers.RabbitMQ
         {
             _channel.QueueDeclare(this._queueName, false, true, true, null);
             _channel.QueueBind(this._queueName, "rapids", "");
+        }
+
+        private void ConsumeMessages()
+        {
+            var consumer = new EventingBasicConsumer(_channel);
+            consumer.Received += (ch, ea) =>
+            {
+                var body = ea.Body;
+                var jsonString = System.Text.Encoding.Default.GetString(body);
+                foreach (var listener in Listeners)
+                {
+                    listener.HandleMessage(this, jsonString);
+                }
+                _channel.BasicAck(ea.DeliveryTag, false);
+            };
+            _channel.BasicConsume(_queueName, false, consumer);
         }
     }
 }
