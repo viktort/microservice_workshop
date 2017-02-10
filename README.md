@@ -19,8 +19,8 @@ will provide instances of RabbitMQ if this is not feasible.
 ## Language Sample Setup
 The starting code is designed to allow attendees to quickly begin designing and developing
 new MicroServices. The following languages have sample code:
-- Java
-- C#
+- Java (use v2)
+- C# (try v2 beta code; if issues, drop back to v1)
 - Ruby
 
 See the README.md files in each of the language-specific directories for setup instructions.
