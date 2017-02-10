@@ -15,6 +15,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RentalOffer.Monitor", "..\R
 		{32FE981F-9841-42EB-B4B9-6C0A44D16767} = {32FE981F-9841-42EB-B4B9-6C0A44D16767}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RentalOffer.Need", "..\RentalOffer.Need\RentalOffer.Need.csproj", "{FC0AEEBC-6DEE-4BB7-86D2-605C25A9AE29}"
+	ProjectSection(ProjectDependencies) = postProject
+		{32FE981F-9841-42EB-B4B9-6C0A44D16767} = {32FE981F-9841-42EB-B4B9-6C0A44D16767}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +38,10 @@ Global
 		{2F46A5D4-A14C-43A6-8FAD-72CC85DD5EEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2F46A5D4-A14C-43A6-8FAD-72CC85DD5EEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2F46A5D4-A14C-43A6-8FAD-72CC85DD5EEA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC0AEEBC-6DEE-4BB7-86D2-605C25A9AE29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC0AEEBC-6DEE-4BB7-86D2-605C25A9AE29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC0AEEBC-6DEE-4BB7-86D2-605C25A9AE29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC0AEEBC-6DEE-4BB7-86D2-605C25A9AE29}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
