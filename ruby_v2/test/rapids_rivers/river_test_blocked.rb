@@ -1,24 +1,26 @@
-# Copyright 2014 by Fred George. May be copied with this notice, but not used in training.
+# Copyright (c) 2017 by Fred George.
+# May be used freely except for training; license required for training.
 
 require_relative "../test_helper"
 
-require_relative "../../lib/packet/packet_builder"
+require_relative "../../lib/rapids_rivers/rapids_connection"
+require_relative "../../lib/rapids_rivers/river"
 
-class PacketBuilderTest < MiniTest::Test
+class RiverTest < MiniTest::Test
   JSON_STRING = {
-      "need" => "car_rental_offer",
+      "key1" => "value1",
       "solutions" => [],
       "frequent_renter" => "",
       "visit_count" => 2,
       }.to_json
 
   def test_required_key_exists
-    factory = PacketBuilder.new(JSON_STRING)
-    factory.require 'need'
-    assert_equal("car_rental_offer", factory.result.need)
-    factory.result.need = "offer_shown"
-    assert_equal("offer_shown", factory.result.need)
-    assert(factory.valid?, 'Existing key not detected')
+    river = River.new(JSON_STRING)
+    river.require 'need'
+    assert_equal("car_rental_offer", river.result.need)
+    river.result.need = "offer_shown"
+    assert_equal("offer_shown", river.result.need)
+    assert(river.valid?, 'Existing key not detected')
   end
 
   def test_missing_required_key
