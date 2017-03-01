@@ -28,10 +28,17 @@ class RiverTest < MiniTest::Test
   end
 
   def test_json_valid
-    @service.define_singleton_method :packet do |rapids_connection, packet, warnings|
-      assert_no_messages warnings
+    @service.define_singleton_method :packet do |send_port, packet, warnings|
+      refute_messages warnings
     end
-    @rapids_connection.received_message(SOLUTION_STRING)
+    @rapids_connection.received_message SOLUTION_STRING
+  end
+
+  def test_json_invalid
+    @service.define_singleton_method :on_error do |send_port, errors|
+      assert_errors errors
+    end
+    @rapids_connection.received_message "{\"key\":value}"
   end
 
   private
@@ -56,8 +63,12 @@ class RiverTest < MiniTest::Test
 
       private
 
-        def assert_no_messages packet_problems
+        def refute_messages packet_problems
           @test.refute packet_problems.messages?, packet_problems.to_s
+        end
+
+        def assert_errors packet_problems
+          @test.assert packet_problems.errors?, packet_problems.to_s
         end
 
     end

@@ -1,6 +1,8 @@
 # Copyright (c) 2017 by Fred George.
 # May be used freely except for training; license required for training.
 
+require 'json'
+
 require_relative './rapids_connection'
 require_relative './packet'
 
@@ -14,7 +16,7 @@ class River
 
   def message(send_port, message)
     packet_problems = PacketProblems.new(message)
-    packet = Packet.new(JSON.parse message)
+    packet = packet_from message, packet_problems
     @validations.each { |v| v.validate(message) }
     @listening_services.each do |ls|
       packet_problems.errors? ?
@@ -26,5 +28,17 @@ class River
   def register(service)
     @listening_services << service
   end
+
+  private
+
+    def packet_from message, packet_problems
+      begin
+        Packet.new JSON.parse(message)
+      rescue JSON::ParserError
+        packet_problems.severe_error("Invalid JSON format. Please check syntax carefully.")
+      rescue Exception => e
+        packet_problems.severe_error("Packet creation issue:\n\t#{e}")
+      end
+    end
 
 end
