@@ -7,10 +7,7 @@ class PacketProblems
 
   def initialize(original_json)
     @original_json = original_json
-    @informational_messages = []
-    @warnings = []
-    @errors = []
-    @severe_errors = []
+    @informational_messages, @warnings, @errors, @severe_errors = [], [], [], []
   end
 
   def errors?

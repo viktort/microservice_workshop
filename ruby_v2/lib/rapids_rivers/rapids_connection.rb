@@ -1,4 +1,4 @@
-# Copyright (c) 2017 by Fred George. 
+# Copyright (c) 2017 by Fred George.
 # May be used freely except for training; license required for training.
 
 module RapidsConnection
@@ -7,8 +7,12 @@ module RapidsConnection
     listeners << listener
   end
 
-  def publish(message)
+  def received_message(message)
     listeners.each { |listener| listener.message(self, message) }
+  end
+
+  def publish(message)
+    throw "No implementation to send message: \n\t #{message}"
   end
 
   private
