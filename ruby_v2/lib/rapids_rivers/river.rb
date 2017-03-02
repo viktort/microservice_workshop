@@ -57,6 +57,15 @@ class River
     self
   end
 
+  def interested_in *keys
+    keys.each do |key|
+      @validations << lambda do |json_hash, packet, packet_problems|
+        create_accessors key, json_hash, packet
+      end
+    end
+    self
+  end
+
   private
 
     def packet_from message, packet_problems

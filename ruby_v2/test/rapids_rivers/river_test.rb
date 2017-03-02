@@ -94,6 +94,25 @@ class RiverTest < MiniTest::Test
     @rapids_connection.received_message SOLUTION_STRING
   end
 
+  def test_interesting_new_field
+    @river.interested_in 'new_key'
+    @service.define_singleton_method :packet do |send_port, packet, warnings|
+      refute_messages warnings
+      packet.new_key = 17
+      packet.new_key += 25
+    end
+    @rapids_connection.received_message SOLUTION_STRING
+  end
+
+  def test_interesting_optional_field
+    @river.interested_in 'frequent_renter'
+    @service.define_singleton_method :packet do |send_port, packet, warnings|
+      refute_messages warnings
+      packet.frequent_renter = 'platinum'
+    end
+    @rapids_connection.received_message SOLUTION_STRING
+  end
+
   private
 
     class TestRapids
