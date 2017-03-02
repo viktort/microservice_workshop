@@ -18,7 +18,7 @@ class RiverTest < MiniTest::Test
         "{\"offer\":\"free upgrade\"}" +
         "]," +
         "\"frequent_renter\":\"\"," +
-        "\"system.read_count\":2," +
+        "\"system_read_count\":2," +
         "\"contributing_services\":[]}";
 
   def setup
@@ -48,6 +48,8 @@ class RiverTest < MiniTest::Test
       refute_messages warnings
       packet.need = packet.need + "_extra"
       packet.user_id = packet.user_id + 14
+      assert_equal 'car_rental_offer_extra', packet.need
+      assert_equal 470, packet.user_id
     end
     @rapids_connection.received_message SOLUTION_STRING
   end
@@ -65,6 +67,7 @@ class RiverTest < MiniTest::Test
     @service.define_singleton_method :packet do |send_port, packet, warnings|
       refute_messages warnings
       packet.frequent_renter = 'platinum'
+      assert_equal 'platinum', packet.frequent_renter
       packet.contributing_services << 'a testing service'
       missing_key = '<accessor created>'
     end
@@ -115,6 +118,26 @@ class RiverTest < MiniTest::Test
     @rapids_connection.received_message SOLUTION_STRING
   end
 
+  def test_validation_chaining
+    @river
+        .require('need', 'user_id')
+        .forbid('contributing_services', 'missing_key')
+        .interested_in('frequent_renter')
+        .require('solutions')
+    @service.define_singleton_method :packet do |send_port, packet, warnings|
+      refute_messages warnings
+    end
+    @rapids_connection.received_message SOLUTION_STRING
+  end
+
+  def test_read_count_incremented
+    @service.define_singleton_method :packet do |send_port, packet, warnings|
+      refute_messages warnings
+      assert_match ':3', packet.to_json
+    end
+    @rapids_connection.received_message SOLUTION_STRING
+  end
+
   private
 
     class TestRapids
@@ -147,6 +170,10 @@ class RiverTest < MiniTest::Test
 
         def assert_equal expected, actual
           @test.assert_equal expected, actual
+        end
+
+        def assert_match expected_contained_string, actual_string
+          @test.assert_match expected_contained_string, actual_string
         end
 
     end

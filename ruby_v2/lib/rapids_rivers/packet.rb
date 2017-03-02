@@ -6,12 +6,12 @@ require 'json'
 # Understands a specifc message
 class Packet
   # The following keys are reserved for system usage:
-  VISIT_COUNT = 'system.read_count'
+  VISIT_COUNT = 'system_read_count'
   CONTRIBUTING_SERVICES = 'contributing_services'
 
   def initialize(json_hash)
     @json_hash = json_hash
-    @read_count = (@json_hash[VISIT_COUNT] || -1) + 1
+    @system_read_count = (@json_hash[VISIT_COUNT] || -1) + 1
     @contributing_services = @json_hash[CONTRIBUTING_SERVICES] || []
     @used_keys = [VISIT_COUNT, CONTRIBUTING_SERVICES]
   end
