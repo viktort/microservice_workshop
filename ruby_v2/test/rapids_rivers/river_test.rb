@@ -7,6 +7,7 @@ require_relative "../test_helper"
 
 require_relative "../../lib/rapids_rivers/river"
 
+# Ensures River can properly filter JSON messages per required validations
 class RiverTest < MiniTest::Test
   SOLUTION_STRING =
       "{\"need\":\"car_rental_offer\"," +
@@ -100,6 +101,7 @@ class RiverTest < MiniTest::Test
       refute_messages warnings
       packet.new_key = 17
       packet.new_key += 25
+      assert_equal 42, packet.new_key
     end
     @rapids_connection.received_message SOLUTION_STRING
   end
@@ -141,6 +143,10 @@ class RiverTest < MiniTest::Test
 
         def assert_errors packet_problems
           @test.assert packet_problems.errors?, packet_problems.to_s
+        end
+
+        def assert_equal expected, actual
+          @test.assert_equal expected, actual
         end
 
     end

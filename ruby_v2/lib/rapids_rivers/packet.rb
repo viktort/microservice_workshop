@@ -3,6 +3,7 @@
 
 require 'json'
 
+# Understands a specifc message
 class Packet
   # The following keys are reserved for system usage:
   VISIT_COUNT = 'system.read_count'

@@ -5,6 +5,7 @@ require_relative "../test_helper"
 
 require_relative "../../lib/rapids_rivers/packet_problems"
 
+# Ensures PacketProblems can be indentified and rendered correctly
 class PacketProblemsTest < MiniTest::Test
 
   JSON_STRING = {"key1" => "value1"}.to_json

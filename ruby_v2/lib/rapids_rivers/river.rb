@@ -6,6 +6,7 @@ require 'json'
 require_relative './rapids_connection'
 require_relative './packet'
 
+# Understands a filtered stream of JSON messages
 class River
 
   def initialize rapids_connection

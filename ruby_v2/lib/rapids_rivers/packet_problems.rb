@@ -3,6 +3,7 @@
 
 require 'json'
 
+# Understands issues about a particular JSON-formatted Packet
 class PacketProblems
 
   def initialize(original_json)
