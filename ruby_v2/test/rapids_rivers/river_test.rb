@@ -60,17 +60,34 @@ class RiverTest < MiniTest::Test
   end
 
   def test_forbidden_field
-    @river.forbid 'frequent_renter', 'contributing_services'
+    @river.forbid 'frequent_renter', 'contributing_services', 'missing_key'
     @service.define_singleton_method :packet do |send_port, packet, warnings|
       refute_messages warnings
       packet.frequent_renter = 'platinum'
       packet.contributing_services << 'a testing service'
+      missing_key = '<accessor created>'
     end
     @rapids_connection.received_message SOLUTION_STRING
   end
 
   def test_forbidden_field_exists
     @river.forbid 'frequent_renter', 'user_id'
+    @service.define_singleton_method :on_error do |send_port, errors|
+      assert_errors errors
+    end
+    @rapids_connection.received_message SOLUTION_STRING
+  end
+
+  def test_required_value_match
+    @river.require_values(need: 'car_rental_offer')
+    @service.define_singleton_method :packet do |send_port, packet, warnings|
+      refute_messages warnings
+    end
+    @rapids_connection.received_message SOLUTION_STRING
+  end
+
+  def test_required_value_incorrect
+    @river.require_values(need: 'airline_discount')
     @service.define_singleton_method :on_error do |send_port, errors|
       assert_errors errors
     end

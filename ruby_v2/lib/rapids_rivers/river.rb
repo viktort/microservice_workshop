@@ -47,6 +47,16 @@ class River
     self
   end
 
+  def require_values(key_value_hashes)
+    key_value_hashes.each do |key, value|
+      @validations << lambda do |json_hash, packet, packet_problems|
+        validate_value key.to_s, value, json_hash, packet_problems
+        create_accessors key.to_s, json_hash, packet
+      end
+    end
+    self
+  end
+
   private
 
     def packet_from message, packet_problems
@@ -71,6 +81,12 @@ class River
       return unless json_hash.key? key
       return unless value?(json_hash[key])
       packet_problems.error "Forbidden key #{key} detected"
+    end
+
+    def validate_value key, value, json_hash, packet_problems
+      validate_required key, json_hash, packet_problems
+      return if json_hash[key] == value
+      packet_problems.error "Required value of key '#{key}' is '#{json_hash[key]}', not '#{value}'"
     end
 
     def create_accessors key, json_hash, packet
