@@ -41,6 +41,14 @@ class RiverTest < MiniTest::Test
     @rapids_connection.received_message "{\"key\":value}"
   end
 
+  def test_required_field
+    @river.require 'need', 'user_id'
+    @service.define_singleton_method :packet do |send_port, packet, warnings|
+      refute_messages warnings
+    end
+    @rapids_connection.received_message SOLUTION_STRING
+  end
+
   private
 
     class TestRapids
@@ -54,11 +62,11 @@ class RiverTest < MiniTest::Test
       end
 
       def packet rapids_connection, packet, warnings
-        throw "Unexpected invocation of Service::packet"
+        throw "Unexpected invocation of Service::packet. Warnings were:\n#{warnings}"
       end
 
       def on_error rapids_connection, errors
-        throw "Unexpected invocation of Service::on_error"
+        throw "Unexpected invocation of Service::on_error. Errors detected were:\n#{errors}"
       end
 
       private
