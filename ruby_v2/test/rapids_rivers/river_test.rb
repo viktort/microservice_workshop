@@ -138,6 +138,19 @@ class RiverTest < MiniTest::Test
     @rapids_connection.received_message SOLUTION_STRING
   end
 
+  def test_json_rendering
+    @river.require 'need'
+    @service.define_singleton_method :packet do |send_port, packet, warnings|
+      refute_messages warnings
+      packet.need = 'airline_discount'
+      original_json = JSON.parse(SOLUTION_STRING)
+      original_json['system_read_count'] = 3
+      original_json['need'] = 'airline_discount'
+      assert_equal original_json, JSON.parse(packet.to_json)
+    end
+    @rapids_connection.received_message SOLUTION_STRING
+  end
+
   private
 
     class TestRapids
