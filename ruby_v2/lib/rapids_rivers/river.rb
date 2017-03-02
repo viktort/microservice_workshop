@@ -37,6 +37,16 @@ class River
     self
   end
 
+  def forbid *keys
+    keys.each do |key|
+      @validations << lambda do |json_hash, packet, packet_problems|
+        validate_missing key, json_hash, packet_problems
+        create_accessors key, json_hash, packet
+      end
+    end
+    self
+  end
+
   private
 
     def packet_from message, packet_problems
@@ -44,6 +54,7 @@ class River
         json_hash = JSON.parse(message)
         packet = Packet.new json_hash
         @validations.each { |v| v.call json_hash, packet, packet_problems }
+        packet
       rescue JSON::ParserError
         packet_problems.severe_error("Invalid JSON format. Please check syntax carefully.")
       rescue Exception => e
@@ -54,6 +65,12 @@ class River
     def validate_required key, json_hash, packet_problems
       return packet_problems.error "Missing required key #{key}" unless json_hash[key]
       return packet_problems.error "Empty required key #{key}" unless value?(json_hash[key])
+    end
+
+    def validate_missing key, json_hash, packet_problems
+      return unless json_hash.key? key
+      return unless value?(json_hash[key])
+      packet_problems.error "Forbidden key #{key} detected"
     end
 
     def create_accessors key, json_hash, packet
@@ -82,7 +99,7 @@ class River
       end
     end
 
-    def variable(key)
+    def variable key
       ('@' + key.to_s).to_sym
     end
 

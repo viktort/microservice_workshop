@@ -45,6 +45,26 @@ class RiverTest < MiniTest::Test
     @river.require 'need', 'user_id'
     @service.define_singleton_method :packet do |send_port, packet, warnings|
       refute_messages warnings
+      packet.need = packet.need + "_extra"
+      packet.user_id = packet.user_id + 14
+    end
+    @rapids_connection.received_message SOLUTION_STRING
+  end
+
+  def test_required_field_missing
+    @river.require 'need', 'missing_key'
+    @service.define_singleton_method :on_error do |send_port, errors|
+      assert_errors errors
+    end
+    @rapids_connection.received_message SOLUTION_STRING
+  end
+
+  def test_forbidden_field
+    @river.forbid 'frequent_renter', 'contributing_services'
+    @service.define_singleton_method :packet do |send_port, packet, warnings|
+      refute_messages warnings
+      packet.frequent_renter = 'platinum'
+      packet.contributing_services << 'a testing service'
     end
     @rapids_connection.received_message SOLUTION_STRING
   end
