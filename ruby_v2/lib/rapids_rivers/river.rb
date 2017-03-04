@@ -19,8 +19,8 @@ class River
     packet_problems = PacketProblems.new message
     packet = packet_from message, packet_problems
     @listening_services.each do |ls|
-      next ls.packet(send_port, packet, packet_problems) unless packet_problems.errors?
-      ls.on_error(send_port, packet_problems)
+      next ls.on_error(send_port, packet_problems) if packet_problems.errors?
+      ls.packet send_port, packet.clone_with_name(ls.service_name), packet_problems
     end
   end
 

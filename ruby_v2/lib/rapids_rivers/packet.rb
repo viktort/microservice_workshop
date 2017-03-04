@@ -9,6 +9,9 @@ class Packet
   VISIT_COUNT = 'system_read_count'
   CONTRIBUTING_SERVICES = 'contributing_services'
 
+  attr_reader :contributing_services
+  protected :contributing_services
+
   def initialize(json_hash)
     @json_hash = json_hash
     @system_read_count = (@json_hash[VISIT_COUNT] || -1) + 1
@@ -20,10 +23,8 @@ class Packet
     @used_keys << key
   end
 
-  def contributing_service(service_registration)
-    this_service_mark = {}
-    service_registration.mark(this_service_mark)
-    @contributing_services << [this_service_mark]
+  def clone_with_name(service_name)
+    self.clone.tap { |packet_copy| packet_copy.contributing_services << service_name }
   end
 
   def to_json
