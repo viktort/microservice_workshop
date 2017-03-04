@@ -12,8 +12,8 @@ module RapidsConnection
     listeners.each { |listener| listener.message(self, message) }
   end
 
-  def publish(message)
-    throw "No implementation to send message: \n\t #{message}"
+  def publish(packet)
+    throw "No implementation to send packets: \n\t #{packet.to_s}"
   end
 
   private
