@@ -2,6 +2,7 @@
 # May be used freely except for training; license required for training.
 
 require 'bunny'
+require 'pry'
 
 require_relative '../river'
 
@@ -11,7 +12,6 @@ class RabbitMqRapids
   RAPIDS = 'rapids'
 
   def initialize(host_ip, port)
-    binding.pry
     @connection = Bunny.new(
       :host => host_ip,
       :port => port.to_i,
@@ -30,7 +30,7 @@ class RabbitMqRapids
 
   private
 
-    def chann
+    def channel
       return @channel if @channel
       @connection.start
       @channel = @connection.create_channel

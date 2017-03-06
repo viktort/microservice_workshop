@@ -1,2 +1,2 @@
-gem 'json', '2.0.3'
-gem 'bunny', '2.6.3'
+gem 'json', '>= 2.0.3'
+gem 'bunny', '>= 2.6.4'

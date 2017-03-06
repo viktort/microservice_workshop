@@ -4,13 +4,16 @@
 # Copyright (c) 2017 by Fred George.
 # May be used freely except for training; license required for training.
 
-require 'securerandom'
+# For debugging...
 require 'pry'
+require 'pry-nav'
+
+require 'securerandom'
 
 require '../rapids_rivers/rabbit_mq/rabbit_mq_rapids'
 
 # Understands the complete stream of messages on an event bus
-class Monitor
+class MonitorAll
   attr_reader :service_name
 
   def initialize(host_ip, port)
@@ -20,7 +23,7 @@ class Monitor
   end
 
   def start
-    @river.register(this)
+    @river.register(self)
     puts " [*] Waiting for traffic on RabbitMQ event bus ... To exit press CTRL+C"
   end
 
@@ -34,4 +37,4 @@ class Monitor
 
 end
 
-Monitor.new(ARGV.shift, ARGV.shift).start
+MonitorAll.new(ARGV.shift, ARGV.shift.to_i).start
