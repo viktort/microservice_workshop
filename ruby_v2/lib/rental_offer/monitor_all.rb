@@ -23,8 +23,8 @@ class MonitorAll
   end
 
   def start
-    @river.register(self)
     puts " [*] Waiting for traffic on RabbitMQ event bus ... To exit press CTRL+C"
+    @river.register(self)
   end
 
   def packet rapids_connection, packet, warnings
