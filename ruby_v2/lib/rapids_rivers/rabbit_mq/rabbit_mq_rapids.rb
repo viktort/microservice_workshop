@@ -29,6 +29,11 @@ class RabbitMqRapids
     end
   end
 
+  def close
+    channel.close
+    @connection.close
+  end
+
   private
 
     def channel

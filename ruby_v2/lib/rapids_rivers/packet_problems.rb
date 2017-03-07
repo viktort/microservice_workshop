@@ -51,6 +51,7 @@ class PacketProblems
     def messages(label, messages)
       return "" if messages.empty?
       results = "\n"
+      results += ' '*5
       results += label
       results += ": "
       results += messages.size.to_s

@@ -19,7 +19,7 @@ class MonitorAll
   def initialize(host_ip, port)
     rapids_connection = RabbitMqRapids.new(host_ip, port)
     @river = RabbitMqRiver.new(rapids_connection)
-    @service_name = 'monitor_ruby_' + SecureRandom.uuid
+    @service_name = 'monitor_all_ruby_' + SecureRandom.uuid
   end
 
   def start

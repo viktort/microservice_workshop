@@ -9,8 +9,13 @@ class RabbitMqRiver < River
   alias_method :parent_register, :register
   def register service
     super
-    queue(service).subscribe(:block => true)  do |delivery_info, metadata, payload|
-      message @rapids_connection, payload
+    begin
+      queue(service).subscribe(:block => true)  do |delivery_info, metadata, payload|
+        message @rapids_connection, payload
+      end
+    rescue Interrupt => _
+      @rapids_connection.close
+      exit(0)
     end
   end
 
