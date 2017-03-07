@@ -5,14 +5,18 @@ require 'json'
 
 require_relative './rapids_connection'
 require_relative './packet'
+require_relative './packet_problems'
 
 # Understands a filtered stream of JSON messages
 class River
+  attr_reader :rapids_connection, :listening_services
+  protected :rapids_connection, :listening_services
 
   def initialize rapids_connection
-    rapids_connection.register(self);
+    @rapids_connection = rapids_connection
     @listening_services = []
     @validations = []
+    rapids_connection.register(self);
   end
 
   def message send_port, message

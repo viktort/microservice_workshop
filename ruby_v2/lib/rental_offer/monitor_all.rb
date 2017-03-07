@@ -5,8 +5,8 @@
 # May be used freely except for training; license required for training.
 
 # For debugging...
-require 'pry'
-require 'pry-nav'
+# require 'pry'
+# require 'pry-nav'
 
 require 'securerandom'
 
@@ -18,7 +18,7 @@ class MonitorAll
 
   def initialize(host_ip, port)
     rapids_connection = RabbitMqRapids.new(host_ip, port)
-    @river = River.new(rapids_connection)
+    @river = RabbitMqRiver.new(rapids_connection)
     @service_name = 'monitor_ruby_' + SecureRandom.uuid
   end
 

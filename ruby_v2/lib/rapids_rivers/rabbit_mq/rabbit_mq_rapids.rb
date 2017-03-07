@@ -2,12 +2,13 @@
 # May be used freely except for training; license required for training.
 
 require 'bunny'
-require 'pry'
 
-require_relative '../river'
+require_relative '../rapids_connection'
+require_relative './rabbit_mq_river'
 
 # Understands an event bus based on RabbitMQ
 class RabbitMqRapids
+  include RapidsConnection
 
   RAPIDS = 'rapids'
 
@@ -22,9 +23,9 @@ class RabbitMqRapids
     exchange.publish packet.to_json
   end
 
-  def register(listener)
-    queue.subscribe do |delivery_info, metadata, payload|
-      listener.message(self, payload)
+  def queue queue_name = ""
+    channel.queue(queue_name || "", exclusive: true, auto_delete: true).tap do |queue|
+      queue.bind exchange
     end
   end
 
@@ -38,12 +39,6 @@ class RabbitMqRapids
 
     def exchange
       @exchange ||= channel.fanout(RAPIDS, durable: true, auto_delete: true)
-    end
-
-    def queue
-      return @queue if @queue
-      @queue = channel.queue("<un-named>", exclusive: true, auto_delete: true)
-      @queue.bind exchange
     end
 
 end
