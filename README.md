@@ -21,7 +21,7 @@ The starting code is designed to allow attendees to quickly begin designing and 
 new MicroServices. The following languages have sample code:
 - Java (use v2)
 - C# (try v2 beta code; if issues, drop back to v1)
-- Ruby
+- Ruby (use v2; new, but looks solid)
 
 See the README.md files in each of the language-specific directories for setup instructions.
 
