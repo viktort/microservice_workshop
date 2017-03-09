@@ -5,8 +5,8 @@
 # May be used freely except for training; license required for training.
 
 # For debugging...
-require 'pry'
-require 'pry-nav'
+# require 'pry'
+# require 'pry-nav'
 
 require 'securerandom'
 

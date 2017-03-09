@@ -7,7 +7,7 @@ require 'json'
 class PacketProblems
 
   def initialize(original_json)
-    @original_json = original_json
+    @json_string = original_json
     @informational_messages, @warnings, @errors, @severe_errors = [], [], [], []
   end
 
@@ -36,9 +36,9 @@ class PacketProblems
   end
 
   def to_s
-    return("No errors detected in JSON:\n\t" + @original_json) if !messages?
+    return("No errors detected in JSON:\n\t" + @json_string) if !messages?
     results = "Errors and/or messages exist. Original JSON string is:\n\t"
-    results += @original_json
+    results += @json_string
     results += messages("Severe errors", @severe_errors)
     results += messages("Errors", @errors)
     results += messages("Warnings", @warnings)
